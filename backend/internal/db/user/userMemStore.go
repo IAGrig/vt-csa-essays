@@ -4,11 +4,12 @@ import (
 	"errors"
 	"time"
 
-	"github.com/IAGrig/vt-csa-essays/internal/crypto"
 	"github.com/IAGrig/vt-csa-essays/internal/models"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
+	AuthErr      = errors.New("authorization failed")
 	DublicateErr = errors.New("user already exists")
 	NotFoundErr  = errors.New("not found")
 )
@@ -29,7 +30,7 @@ func (store UserMemStore) Add(request models.UserLoginRequest) (models.UserRespo
 		return models.UserResponse{}, DublicateErr
 	}
 
-	passwordHash, err := crypto.GenerateHash([]byte(request.Password))
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(request.Password), 10)
 	if err != nil {
 		return models.UserResponse{}, err
 	}
@@ -45,13 +46,30 @@ func (store UserMemStore) Add(request models.UserLoginRequest) (models.UserRespo
 	return store.userToUserResponse(user), nil
 }
 
-func (store UserMemStore) Get(name string) (models.UserResponse, error) {
-
-	if val, ok := store.list[name]; ok {
-		return store.userToUserResponse(val), nil
+func (store UserMemStore) Auth(request models.UserLoginRequest) (models.UserResponse, error) {
+	user, err := store.getUser(request.Username)
+	if err != nil {
+		return models.UserResponse{}, err
 	}
 
-	return models.UserResponse{}, NotFoundErr
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(request.Password)); err != nil {
+		return models.UserResponse{}, AuthErr
+	}
+
+	return store.userToUserResponse(user), nil
+}
+
+// Internal store func, returns a full-featured User object containing PasswordHash
+func (store UserMemStore) getUser(username string) (models.User, error) {
+	if user, ok := store.list[username]; ok {
+		return user, nil
+	}
+	return models.User{}, NotFoundErr
+}
+
+func (store UserMemStore) Get(username string) (models.UserResponse, error) {
+	user, err := store.getUser(username)
+	return store.userToUserResponse(user), err
 }
 
 func (store UserMemStore) userToUserResponse(user models.User) models.UserResponse {
