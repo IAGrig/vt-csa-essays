@@ -18,6 +18,7 @@ func main() {
 	{
 		router.POST("user", userHandler.CreateUser)
 		router.POST("login", userHandler.Login)
+		router.POST("refresh", userHandler.RefreshToken)
 	}
 
 	authGroup := router.Group("api", middleware.JWTAuthMiddleware())

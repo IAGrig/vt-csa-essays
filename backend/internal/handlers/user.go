@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -79,11 +80,65 @@ func (h UserHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"access_token": accessToken})
 }
 
+func (h UserHandler) RefreshToken(c *gin.Context) {
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "refresh token required"})
+		return
+	}
+
+	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("JWT_REFRESH_SECRET")), nil
+	})
+	if err != nil || !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token"})
+		return
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || claims["type"] != "refresh" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token type"})
+		return
+	}
+
+	// Validate token expiration
+	exp, ok := claims["exp"].(float64)
+	if !ok || time.Now().Unix() > int64(exp) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "refresh token expired"})
+		return
+	}
+
+	username, ok := claims["sub"].(string)
+	if !ok || username == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid subject"})
+		return
+	}
+
+	user, err := h.store.Get(username)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
+		return
+	}
+
+	newAccessToken, err := generateAccessToken(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate access token"})
+		return
+	}
+
+	// I need to implement tokens invalidation and regenerate refresh tokens on every request
+
+	c.JSON(http.StatusOK, gin.H{"access_token": newAccessToken})
+}
+
 func generateAccessToken(user models.UserResponse) (string, error) {
 	claims := jwt.MapClaims{
 		"sub": user.Username,
 		"iss": "vt-csa-essays",
-		"exp": time.Now().Add(1 * time.Minute).Unix(),
+		"exp": time.Now().Add(15 * time.Minute).Unix(),
 		"iat": time.Now().Unix(),
 		"jti": uuid.New().String(),
 	}
