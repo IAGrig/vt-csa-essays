@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	db "github.com/IAGrig/vt-csa-essays/internal/db/user"
+	"github.com/IAGrig/vt-csa-essays/internal/db/user"
 	"github.com/IAGrig/vt-csa-essays/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -14,10 +14,10 @@ import (
 )
 
 type UserHandler struct {
-	store db.UserStore
+	store userstore.UserStore
 }
 
-func NewUserHandler(store db.UserStore) *UserHandler {
+func NewUserHandler(store userstore.UserStore) *UserHandler {
 	return &UserHandler{store}
 }
 

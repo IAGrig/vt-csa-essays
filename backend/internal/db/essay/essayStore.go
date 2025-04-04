@@ -1,4 +1,4 @@
-package db
+package essaystore
 
 import "github.com/IAGrig/vt-csa-essays/internal/models"
 

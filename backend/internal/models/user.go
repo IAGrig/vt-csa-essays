@@ -4,10 +4,10 @@ import "time"
 
 // Internal DB representation
 type User struct {
-	ID           int       `json:"id" binding:"required,number"`
-	Username     string    `json:"username" binding:"required,alphanum"`
-	PasswordHash string    `json:"-"`
-	CreatedAt    time.Time `json:"created_at"`
+	ID           int
+	Username     string
+	PasswordHash string
+	CreatedAt    time.Time
 }
 
 // Login and registration DTO

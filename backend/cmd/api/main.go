@@ -1,8 +1,8 @@
 package main
 
 import (
-	essaydb "github.com/IAGrig/vt-csa-essays/internal/db/essay"
-	userdb "github.com/IAGrig/vt-csa-essays/internal/db/user"
+	"github.com/IAGrig/vt-csa-essays/internal/db/essay"
+	"github.com/IAGrig/vt-csa-essays/internal/db/user"
 	"github.com/IAGrig/vt-csa-essays/internal/handlers"
 	"github.com/IAGrig/vt-csa-essays/internal/middleware"
 	"github.com/gin-gonic/gin"
@@ -12,10 +12,10 @@ import (
 func main() {
 	godotenv.Load()
 
-	userStore := userdb.NewUserMemStore()
+	userStore := userstore.NewUserMemStore()
 	userHandler := handlers.NewUserHandler(userStore)
 
-	essayStore := essaydb.NewEssayMemStore()
+	essayStore := essaystore.NewEssayMemStore()
 	essayHandler := handlers.NewEssayHandler(essayStore)
 
 	router := gin.Default()

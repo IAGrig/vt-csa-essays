@@ -3,16 +3,16 @@ package handlers
 import (
 	"net/http"
 
-	db "github.com/IAGrig/vt-csa-essays/internal/db/essay"
+	"github.com/IAGrig/vt-csa-essays/internal/db/essay"
 	"github.com/IAGrig/vt-csa-essays/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
 type EssayHandler struct {
-	store db.EssayStore
+	store essaystore.EssayStore
 }
 
-func NewEssayHandler(store db.EssayStore) *EssayHandler {
+func NewEssayHandler(store essaystore.EssayStore) *EssayHandler {
 	return &EssayHandler{store}
 }
 
