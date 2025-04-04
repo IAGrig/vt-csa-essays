@@ -1,7 +1,8 @@
 package main
 
 import (
-	db "github.com/IAGrig/vt-csa-essays/internal/db/user"
+	essaydb "github.com/IAGrig/vt-csa-essays/internal/db/essay"
+	userdb "github.com/IAGrig/vt-csa-essays/internal/db/user"
 	"github.com/IAGrig/vt-csa-essays/internal/handlers"
 	"github.com/IAGrig/vt-csa-essays/internal/middleware"
 	"github.com/gin-gonic/gin"
@@ -11,14 +12,28 @@ import (
 func main() {
 	godotenv.Load()
 
-	userStore := db.NewUserMemStore()
+	userStore := userdb.NewUserMemStore()
 	userHandler := handlers.NewUserHandler(userStore)
+
+	essayStore := essaydb.NewEssayMemStore()
+	essayHandler := handlers.NewEssayHandler(essayStore)
 
 	router := gin.Default()
 	{
 		router.POST("user", userHandler.CreateUser)
 		router.POST("login", userHandler.Login)
 		router.POST("refresh", userHandler.RefreshToken)
+	}
+
+	publicEssayGroup := router.Group("essay")
+	{
+		publicEssayGroup.GET("/:authorname", essayHandler.GetEssay)
+	}
+
+	protectedEssayGroup := router.Group("essay", middleware.JWTAuthMiddleware())
+	{
+		protectedEssayGroup.POST("", essayHandler.CreateEssay)
+		protectedEssayGroup.DELETE("/:authorname", essayHandler.RemoveEssay)
 	}
 
 	authGroup := router.Group("api", middleware.JWTAuthMiddleware())
