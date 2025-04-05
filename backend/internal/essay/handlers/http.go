@@ -3,21 +3,21 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/IAGrig/vt-csa-essays/internal/db/essay"
-	"github.com/IAGrig/vt-csa-essays/internal/models"
+	"github.com/IAGrig/vt-csa-essays/internal/essay"
+	"github.com/IAGrig/vt-csa-essays/internal/essay/service"
 	"github.com/gin-gonic/gin"
 )
 
 type EssayHandler struct {
-	store essaystore.EssayStore
+	service service.UserSevice
 }
 
-func NewEssayHandler(store essaystore.EssayStore) *EssayHandler {
-	return &EssayHandler{store}
+func NewHttpHandler(service service.UserSevice) *EssayHandler {
+	return &EssayHandler{service}
 }
 
 func (h *EssayHandler) CreateEssay(c *gin.Context) {
-	var request models.EssayRequest
+	var request essay.EssayRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -29,7 +29,7 @@ func (h *EssayHandler) CreateEssay(c *gin.Context) {
 		return
 	}
 
-	essay, err := h.store.Add(request)
+	essay, err := h.service.Add(request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -41,9 +41,9 @@ func (h *EssayHandler) CreateEssay(c *gin.Context) {
 func (h *EssayHandler) GetEssay(c *gin.Context) {
 	authorname := c.Param("authorname")
 
-	essay, err := h.store.GetByAuthorName(authorname)
+	essay, err := h.service.GetByAuthorName(authorname)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -53,7 +53,7 @@ func (h *EssayHandler) GetEssay(c *gin.Context) {
 func (h *EssayHandler) RemoveEssay(c *gin.Context) {
 	authorname := c.Param("authorname")
 
-	essay, err := h.store.RemoveByAuthorName(authorname)
+	essay, err := h.service.RemoveByAuthorName(authorname)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

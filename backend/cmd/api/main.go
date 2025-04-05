@@ -1,10 +1,16 @@
 package main
 
 import (
-	"github.com/IAGrig/vt-csa-essays/internal/db/essay"
-	"github.com/IAGrig/vt-csa-essays/internal/db/user"
-	"github.com/IAGrig/vt-csa-essays/internal/handlers"
-	"github.com/IAGrig/vt-csa-essays/internal/middleware"
+	"os"
+
+	"github.com/IAGrig/vt-csa-essays/internal/auth/jwt"
+	"github.com/IAGrig/vt-csa-essays/internal/auth/middleware"
+	essayhandlers "github.com/IAGrig/vt-csa-essays/internal/essay/handlers"
+	essayservice "github.com/IAGrig/vt-csa-essays/internal/essay/service"
+	essaystore "github.com/IAGrig/vt-csa-essays/internal/essay/store"
+	userhandlers "github.com/IAGrig/vt-csa-essays/internal/user/handlers"
+	userservice "github.com/IAGrig/vt-csa-essays/internal/user/service"
+	userstore "github.com/IAGrig/vt-csa-essays/internal/user/store"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -12,11 +18,19 @@ import (
 func main() {
 	godotenv.Load()
 
+	accessSecret := []byte(os.Getenv("JWT_ACCESS_SECRET"))
+	refreshSecret := []byte(os.Getenv("JWT_REFRESH_SECRET"))
+
+	jwtGenerator := jwt.NewGenerator(accessSecret, refreshSecret)
+	jwtParser := jwt.NewParser(accessSecret, refreshSecret)
+
 	userStore := userstore.NewUserMemStore()
-	userHandler := handlers.NewUserHandler(userStore)
+	userService := userservice.New(userStore, jwtGenerator, jwtParser)
+	userHandler := userhandlers.NewHttpHandler(userService)
 
 	essayStore := essaystore.NewEssayMemStore()
-	essayHandler := handlers.NewEssayHandler(essayStore)
+	essayService := essayservice.New(essayStore)
+	essayHandler := essayhandlers.NewHttpHandler(essayService)
 
 	router := gin.Default()
 	{
