@@ -73,7 +73,7 @@ func (store *ReviewMemStore) RemoveById(id int) (review.Review, error) {
 	}
 
 	slice := store.reviewsByEssayId[essayId]
-	slice = slices.Delete(slice, index, index+1)
+	store.reviewsByEssayId[essayId] = slices.Delete(slice, index, index+1)
 
 	return r, nil
 }
