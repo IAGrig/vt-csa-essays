@@ -36,7 +36,7 @@ func main() {
 	reviewHandler := reviewhandlers.NewHttpHandler(reviewService)
 
 	essayStore := essaystore.NewEssayMemStore()
-	essayService := essayservice.New(essayStore, reviewStore)
+	essayService := essayservice.New(essayStore, reviewService)
 	essayHandler := essayhandlers.NewHttpHandler(essayService)
 
 	router := gin.Default()

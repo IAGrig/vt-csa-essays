@@ -12,7 +12,7 @@ func (service *service) essayToResponse(e essay.Essay) (essay.EssayResponse, err
 }
 
 func (service *service) essayToResponseWithReviews(e essay.Essay) (essay.EssayWithReviewsResponse, error) {
-	reviews, err := service.reviewStore.GetByEssayId(e.ID)
+	reviews, err := service.reviewService.GetByEssayId(e.ID)
 	if err != nil {
 		return essay.EssayWithReviewsResponse{}, err
 	}

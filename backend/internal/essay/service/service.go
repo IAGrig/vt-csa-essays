@@ -2,8 +2,8 @@ package service
 
 import (
 	"github.com/IAGrig/vt-csa-essays/internal/essay"
-	essaystore "github.com/IAGrig/vt-csa-essays/internal/essay/store"
-	reviewstore "github.com/IAGrig/vt-csa-essays/internal/review/store"
+	"github.com/IAGrig/vt-csa-essays/internal/essay/store"
+	reviewservice "github.com/IAGrig/vt-csa-essays/internal/review/service"
 )
 
 type EssaySevice interface {
@@ -13,12 +13,12 @@ type EssaySevice interface {
 }
 
 type service struct {
-	essayStore  essaystore.EssayStore
-	reviewStore reviewstore.ReviewStore
+	essayStore    store.EssayStore
+	reviewService reviewservice.ReviewService
 }
 
-func New(essayStore essaystore.EssayStore, reviewStore reviewstore.ReviewStore) EssaySevice {
-	return &service{essayStore: essayStore, reviewStore: reviewStore}
+func New(essayStore store.EssayStore, reviewService reviewservice.ReviewService) EssaySevice {
+	return &service{essayStore: essayStore, reviewService: reviewService}
 }
 
 func (service *service) Add(request essay.EssayRequest) (essay.EssayResponse, error) {

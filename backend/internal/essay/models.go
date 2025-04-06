@@ -24,11 +24,11 @@ type EssayResponse struct {
 
 // Detailed get response
 type EssayWithReviewsResponse struct {
-	ID        int             `json:"id"`
-	Content   string          `json:"content"`
-	Author    string          `json:"author"`
-	CreatedAt time.Time       `json:"created_at"`
-	Reviews   []review.Review `json:"reviews"`
+	ID        int                     `json:"id"`
+	Content   string                  `json:"content"`
+	Author    string                  `json:"author"`
+	CreatedAt time.Time               `json:"created_at"`
+	Reviews   []review.ReviewResponse `json:"reviews"`
 }
 
 // Add/update request DTO
