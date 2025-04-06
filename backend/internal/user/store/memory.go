@@ -11,7 +11,7 @@ import (
 var (
 	AuthErr      = errors.New("authorization failed")
 	DuplicateErr = errors.New("user already exists")
-	NotFoundErr  = errors.New("not found")
+	NotFoundErr  = errors.New("user not found")
 )
 
 type UserMemStore struct {

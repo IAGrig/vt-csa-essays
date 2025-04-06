@@ -72,6 +72,10 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
 	}
 
 	newAccessToken, _, err := h.service.RefreshToken(refreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
 	// I need to implement tokens invalidation and regenerate refresh tokens on every request
 
 	c.JSON(http.StatusOK, gin.H{"access_token": newAccessToken})
@@ -82,9 +86,9 @@ func setRefreshCookie(c *gin.Context, refreshToken string) {
 	c.SetCookie(
 		"refresh_token",
 		refreshToken,
-		7*24*60*60,      // MaxAge in seconds (7 days)
-		"/auth/refresh", // Path
-		"",              // Current domain
+		7*24*60*60,          // MaxAge in seconds (7 days)
+		"/api/user/refresh", // Path
+		"",                  // Current domain
 		isSecure,
 		true, // HTTP only, JS can't read token
 	)

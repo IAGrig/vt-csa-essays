@@ -53,6 +53,12 @@ func (h *EssayHandler) GetEssay(c *gin.Context) {
 func (h *EssayHandler) RemoveEssay(c *gin.Context) {
 	authorname := c.Param("authorname")
 
+	// Compare the username from the auth middleware and the authorname specified in request
+	if username, exists := c.Get("username"); !exists || username != authorname {
+		c.JSON(http.StatusForbidden, gin.H{"error": "you can delete only your own essays"})
+		return
+	}
+
 	essay, err := h.service.RemoveByAuthorName(authorname)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

@@ -52,7 +52,7 @@ func (store *EssayMemStore) GetByAuthorName(username string) (essay.Essay, error
 func (store *EssayMemStore) RemoveByAuthorName(username string) (essay.Essay, error) {
 	ess, err := store.GetByAuthorName(username)
 	if err != nil {
-		return essay.Essay{}, DuplicateErr
+		return essay.Essay{}, err
 	}
 
 	delete(store.list, ess.Author)

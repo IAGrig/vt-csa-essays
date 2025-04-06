@@ -49,7 +49,7 @@ func (store *ReviewMemStore) GetByEssayId(id int) ([]review.Review, error) {
 	if reviews, ok := store.reviewsByEssayId[id]; ok {
 		return reviews, nil
 	}
-	return []review.Review{}, EssayNotFoundErr
+	return []review.Review{}, nil
 }
 
 func (store *ReviewMemStore) RemoveById(id int) (review.Review, error) {

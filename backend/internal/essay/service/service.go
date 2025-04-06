@@ -24,7 +24,7 @@ func New(essayStore essaystore.EssayStore, reviewStore reviewstore.ReviewStore) 
 func (service *service) Add(request essay.EssayRequest) (essay.EssayResponse, error) {
 	e, err := service.essayStore.Add(request)
 	if err != nil {
-		return essay.EssayResponse{}, nil
+		return essay.EssayResponse{}, err
 	}
 
 	return service.essayToResponse(e)
@@ -33,7 +33,7 @@ func (service *service) Add(request essay.EssayRequest) (essay.EssayResponse, er
 func (service *service) GetByAuthorName(authorname string) (essay.EssayWithReviewsResponse, error) {
 	e, err := service.essayStore.GetByAuthorName(authorname)
 	if err != nil {
-		return essay.EssayWithReviewsResponse{}, nil
+		return essay.EssayWithReviewsResponse{}, err
 	}
 
 	return service.essayToResponseWithReviews(e)
@@ -42,7 +42,7 @@ func (service *service) GetByAuthorName(authorname string) (essay.EssayWithRevie
 func (service *service) RemoveByAuthorName(authorname string) (essay.EssayResponse, error) {
 	e, err := service.essayStore.RemoveByAuthorName(authorname)
 	if err != nil {
-		return essay.EssayResponse{}, nil
+		return essay.EssayResponse{}, err
 	}
 
 	return service.essayToResponse(e)

@@ -35,13 +35,13 @@ func (service *service) GetByEssayId(id int) ([]review.ReviewResponse, error) {
 	}
 
 	responses := make([]review.ReviewResponse, len(reviews))
-	for _, r := range reviews {
+	for i, r := range reviews {
 		response, err := service.ReviewToResponse(r)
 		if err != nil {
 			return []review.ReviewResponse{}, err
 		}
 
-		responses = append(responses, response)
+		responses[i] = response
 	}
 
 	return responses, nil
