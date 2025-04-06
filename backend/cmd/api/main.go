@@ -40,31 +40,40 @@ func main() {
 	essayHandler := essayhandlers.NewHttpHandler(essayService)
 
 	router := gin.Default()
+	publicApiGroup := router.Group("api")
 	{
-		router.POST("user", userHandler.CreateUser)
-		router.POST("login", userHandler.Login)
-		router.POST("refresh", userHandler.RefreshToken)
+		userGroup := publicApiGroup.Group("user")
+		{
+			userGroup.GET("/:username", userHandler.GetUser)
+			userGroup.POST("", userHandler.CreateUser)
+			userGroup.POST("login", userHandler.Login)
+			userGroup.POST("refresh", userHandler.RefreshToken)
+		}
 
-		router.GET("api/review/:essayId", reviewHandler.GetByEssayId)
+		essayGroup := publicApiGroup.Group("essay")
+		{
+			essayGroup.GET("/:authorname", essayHandler.GetEssay)
+		}
+
+		reviewGroup := publicApiGroup.Group("review")
+		{
+			reviewGroup.GET("/:essayId", reviewHandler.GetByEssayId)
+		}
 	}
 
-	publicEssayGroup := router.Group("essay")
+	protectedApiGroup := router.Group("api", middleware.JWTAuthMiddleware())
 	{
-		publicEssayGroup.GET("/:authorname", essayHandler.GetEssay)
-	}
+		essayGroup := protectedApiGroup.Group("essay")
+		{
+			essayGroup.POST("", essayHandler.CreateEssay)
+			essayGroup.DELETE("/:authorname", essayHandler.RemoveEssay)
+		}
 
-	protectedEssayGroup := router.Group("essay", middleware.JWTAuthMiddleware())
-	{
-		protectedEssayGroup.POST("", essayHandler.CreateEssay)
-		protectedEssayGroup.DELETE("/:authorname", essayHandler.RemoveEssay)
-	}
-
-	authGroup := router.Group("api", middleware.JWTAuthMiddleware())
-	{
-		authGroup.GET("user/:username", userHandler.GetUser)
-
-		authGroup.POST("/review", reviewHandler.CreateReview)
-		authGroup.DELETE("/review/:reviewId", reviewHandler.RemoveById)
+		reviewGroup := protectedApiGroup.Group("review")
+		{
+			reviewGroup.POST("", reviewHandler.CreateReview)
+			reviewGroup.DELETE("/:reviewId", reviewHandler.RemoveById)
+		}
 	}
 
 	router.Run(":8080")
