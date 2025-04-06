@@ -1,13 +1,34 @@
 package essay
 
-import "time"
+import (
+	"time"
+
+	"github.com/IAGrig/vt-csa-essays/internal/review"
+)
 
 // Domain model
 type Essay struct {
+	ID        int
+	Content   string
+	Author    string
+	CreatedAt time.Time
+}
+
+// Short get response
+type EssayResponse struct {
 	ID        int       `json:"id"`
 	Content   string    `json:"content"`
 	Author    string    `json:"author"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+// Detailed get response
+type EssayWithReviewsResponse struct {
+	ID        int             `json:"id"`
+	Content   string          `json:"content"`
+	Author    string          `json:"author"`
+	CreatedAt time.Time       `json:"created_at"`
+	Reviews   []review.Review `json:"reviews"`
 }
 
 // Add/update request DTO

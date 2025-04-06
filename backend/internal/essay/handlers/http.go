@@ -9,10 +9,10 @@ import (
 )
 
 type EssayHandler struct {
-	service service.UserSevice
+	service service.EssaySevice
 }
 
-func NewHttpHandler(service service.UserSevice) *EssayHandler {
+func NewHttpHandler(service service.EssaySevice) *EssayHandler {
 	return &EssayHandler{service}
 }
 

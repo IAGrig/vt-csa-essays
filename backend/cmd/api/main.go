@@ -8,6 +8,9 @@ import (
 	essayhandlers "github.com/IAGrig/vt-csa-essays/internal/essay/handlers"
 	essayservice "github.com/IAGrig/vt-csa-essays/internal/essay/service"
 	essaystore "github.com/IAGrig/vt-csa-essays/internal/essay/store"
+	reviewhandlers "github.com/IAGrig/vt-csa-essays/internal/review/handlers"
+	reviewservice "github.com/IAGrig/vt-csa-essays/internal/review/service"
+	reviewstore "github.com/IAGrig/vt-csa-essays/internal/review/store"
 	userhandlers "github.com/IAGrig/vt-csa-essays/internal/user/handlers"
 	userservice "github.com/IAGrig/vt-csa-essays/internal/user/service"
 	userstore "github.com/IAGrig/vt-csa-essays/internal/user/store"
@@ -28,8 +31,12 @@ func main() {
 	userService := userservice.New(userStore, jwtGenerator, jwtParser)
 	userHandler := userhandlers.NewHttpHandler(userService)
 
+	reviewStore := reviewstore.NewReviewMemStore()
+	reviewService := reviewservice.New(reviewStore)
+	reviewHandler := reviewhandlers.NewHttpHandler(reviewService)
+
 	essayStore := essaystore.NewEssayMemStore()
-	essayService := essayservice.New(essayStore)
+	essayService := essayservice.New(essayStore, reviewStore)
 	essayHandler := essayhandlers.NewHttpHandler(essayService)
 
 	router := gin.Default()
@@ -37,6 +44,8 @@ func main() {
 		router.POST("user", userHandler.CreateUser)
 		router.POST("login", userHandler.Login)
 		router.POST("refresh", userHandler.RefreshToken)
+
+		router.GET("api/review/:essayId", reviewHandler.GetByEssayId)
 	}
 
 	publicEssayGroup := router.Group("essay")
@@ -53,6 +62,9 @@ func main() {
 	authGroup := router.Group("api", middleware.JWTAuthMiddleware())
 	{
 		authGroup.GET("user/:username", userHandler.GetUser)
+
+		authGroup.POST("/review", reviewHandler.CreateReview)
+		authGroup.DELETE("/review/:reviewId", reviewHandler.RemoveById)
 	}
 
 	router.Run(":8080")
