@@ -1,0 +1,12 @@
+-- +goose Up
+CREATE TABLE IF NOT EXISTS reviews (
+    review_id BIGSERIAL PRIMARY KEY,
+    essay_id BIGINT NOT NULL REFERENCES essays(essay_id) ON DELETE CASCADE,
+    rank INTEGER NOT NULL CHECK (rank BETWEEN 1 AND 3),
+    content TEXT NOT NULL CHECK (LENGTH(content) > 0),
+    author VARCHAR(50) NOT NULL REFERENCES users(username) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- +goose Down
+DROP TABLE IF EXISTS reviews;

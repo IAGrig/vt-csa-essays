@@ -1,0 +1,10 @@
+-- +goose Up
+CREATE TABLE IF NOT EXISTS essays (
+    essay_id BIGSERIAL PRIMARY KEY,
+    content TEXT NOT NULL CHECK (LENGTH(content) > 0),
+    author VARCHAR(50) NOT NULL REFERENCES users(username) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- +goose Down
+DROP TABLE IF EXISTS essays;
