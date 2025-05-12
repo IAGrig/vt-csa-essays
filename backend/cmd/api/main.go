@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/IAGrig/vt-csa-essays/internal/auth/jwt"
@@ -27,15 +28,27 @@ func main() {
 	jwtGenerator := jwt.NewGenerator(accessSecret, refreshSecret)
 	jwtParser := jwt.NewParser(accessSecret, refreshSecret)
 
-	userStore := userstore.NewUserMemStore()
+	userStore, err := userstore.NewUserPgStore()
+	if err != nil {
+		panic(fmt.Errorf("failed to create user store: %w", err))
+	}
+
+	reviewStore, err := reviewstore.NewReviewPgStore()
+	if err != nil {
+		panic(fmt.Errorf("failed to create review store: %w", err))
+	}
+
+	essayStore, err := essaystore.NewEssayPgStore()
+	if err != nil {
+		panic(fmt.Errorf("failed to create essay store: %w", err))
+	}
+
 	userService := userservice.New(userStore, jwtGenerator, jwtParser)
 	userHandler := userhandlers.NewHttpHandler(userService)
 
-	reviewStore := reviewstore.NewReviewMemStore()
 	reviewService := reviewservice.New(reviewStore)
 	reviewHandler := reviewhandlers.NewHttpHandler(reviewService)
 
-	essayStore := essaystore.NewEssayMemStore()
 	essayService := essayservice.New(essayStore, reviewService)
 	essayHandler := essayhandlers.NewHttpHandler(essayService)
 
