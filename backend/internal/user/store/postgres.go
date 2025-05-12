@@ -41,7 +41,7 @@ func (store *UserPgStore) Add(request user.UserLoginRequest) (user.UserResponse,
 		request.Username, passwordHash).Scan(&usr.ID, &usr.Username, &usr.CreatedAt)
 
 	if err != nil {
-		var pgErr pgconn.PgError
+		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			return user.UserResponse{}, DuplicateErr
 		}
