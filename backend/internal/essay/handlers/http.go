@@ -50,6 +50,16 @@ func (h *EssayHandler) GetEssay(c *gin.Context) {
 	c.JSON(http.StatusOK, essay)
 }
 
+func (h *EssayHandler) GetAllEssays(c *gin.Context) {
+	essay, err := h.service.GetAllEssays()
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, essay)
+}
+
 func (h *EssayHandler) RemoveEssay(c *gin.Context) {
 	authorname := c.Param("authorname")
 

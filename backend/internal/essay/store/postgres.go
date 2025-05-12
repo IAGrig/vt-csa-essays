@@ -47,6 +47,32 @@ func (store *EssayPgStore) Add(request essay.EssayRequest) (essay.Essay, error) 
 	return e, nil
 }
 
+func (store *EssayPgStore) GetAllEssays() ([]essay.Essay, error) {
+	rows, err := store.db.Query(context.Background(),
+		`SELECT essay_id, content, author, created_at
+		FROM essays
+		ORDER BY created_at DESC;`,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get essays: %w", err)
+	}
+	defer rows.Close()
+
+	var essays []essay.Essay
+	for rows.Next() {
+		var e essay.Essay
+		rows.Scan(
+			&e.ID,
+			&e.Content,
+			&e.Author,
+			&e.CreatedAt,
+		)
+		essays = append(essays, e)
+	}
+
+	return essays, nil
+}
+
 func (store *EssayPgStore) GetByAuthorName(username string) (essay.Essay, error) {
 	var e essay.Essay
 	err := store.db.QueryRow(context.Background(),

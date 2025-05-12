@@ -8,6 +8,7 @@ import (
 
 type EssaySevice interface {
 	Add(essay.EssayRequest) (essay.EssayResponse, error)
+	GetAllEssays() ([]essay.EssayResponse, error)
 	GetByAuthorName(string) (essay.EssayWithReviewsResponse, error)
 	RemoveByAuthorName(string) (essay.EssayResponse, error)
 }
@@ -28,6 +29,24 @@ func (service *service) Add(request essay.EssayRequest) (essay.EssayResponse, er
 	}
 
 	return service.essayToResponse(e)
+}
+
+func (service *service) GetAllEssays() ([]essay.EssayResponse, error) {
+	essays, err := service.essayStore.GetAllEssays()
+	if err != nil {
+		return nil, err
+	}
+
+	responses := make([]essay.EssayResponse, len(essays))
+	for i, e := range essays {
+		response, err := service.essayToResponse(e)
+		if err != nil {
+			return []essay.EssayResponse{}, err
+		}
+		responses[i] = response
+	}
+
+	return responses, nil
 }
 
 func (service *service) GetByAuthorName(authorname string) (essay.EssayWithReviewsResponse, error) {

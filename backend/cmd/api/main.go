@@ -65,6 +65,7 @@ func main() {
 
 		essayGroup := publicApiGroup.Group("essay")
 		{
+			essayGroup.GET("", essayHandler.GetAllEssays)
 			essayGroup.GET("/:authorname", essayHandler.GetEssay)
 		}
 
