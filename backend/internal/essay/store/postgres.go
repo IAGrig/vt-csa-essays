@@ -27,8 +27,12 @@ func NewEssayPgStore() (*EssayPgStore, error) {
 }
 
 func (store *EssayPgStore) Add(request essay.EssayRequest) (essay.Essay, error) {
-	var e essay.Essay
-	err := store.db.QueryRow(context.Background(),
+	e, err := store.GetByAuthorName(request.Author)
+	if err == nil { // if essay found successfully
+		return e, DuplicateErr
+	}
+
+	err = store.db.QueryRow(context.Background(),
 		`INSERT INTO essays (content, author)
 		VALUES ($1, $2)
 		RETURNING essay_id, content, author, created_at;`,
