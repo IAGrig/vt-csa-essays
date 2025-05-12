@@ -7,6 +7,7 @@ import (
 
 type ReviewService interface {
 	Add(review.ReviewRequest) (review.ReviewResponse, error)
+	GetAllReviews() ([]review.ReviewResponse, error)
 	GetByEssayId(int) ([]review.ReviewResponse, error)
 	RemoveById(int) (review.ReviewResponse, error)
 }
@@ -26,6 +27,24 @@ func (service *service) Add(request review.ReviewRequest) (review.ReviewResponse
 	}
 
 	return service.ReviewToResponse(r)
+}
+
+func (service *service) GetAllReviews() ([]review.ReviewResponse, error) {
+	reviews, err := service.store.GetAllReviews()
+	if err != nil {
+		return []review.ReviewResponse{}, err
+	}
+
+	responses := make([]review.ReviewResponse, len(reviews))
+	for i, r := range reviews {
+		response, err := service.ReviewToResponse(r)
+		if err != nil {
+			return []review.ReviewResponse{}, err
+		}
+		responses[i] = response
+	}
+
+	return responses, nil
 }
 
 func (service *service) GetByEssayId(id int) ([]review.ReviewResponse, error) {

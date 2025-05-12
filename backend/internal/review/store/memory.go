@@ -45,6 +45,17 @@ func (store *ReviewMemStore) Add(request review.ReviewRequest) (review.Review, e
 	return review, nil
 }
 
+func (store *ReviewMemStore) GetAllReviews() ([]review.Review, error) {
+	var reviews []review.Review
+	for _, reviewSlice := range store.reviewsByEssayId {
+		for _, r := range reviewSlice {
+			reviews = append(reviews, r)
+		}
+	}
+
+	return reviews, nil
+}
+
 func (store *ReviewMemStore) GetByEssayId(id int) ([]review.Review, error) {
 	if reviews, ok := store.reviewsByEssayId[id]; ok {
 		return reviews, nil

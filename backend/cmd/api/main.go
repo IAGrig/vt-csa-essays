@@ -71,6 +71,7 @@ func main() {
 
 		reviewGroup := publicApiGroup.Group("review")
 		{
+			reviewGroup.GET("", reviewHandler.GetAllReviews)
 			reviewGroup.GET("/:essayId", reviewHandler.GetByEssayId)
 		}
 	}

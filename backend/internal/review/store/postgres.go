@@ -49,6 +49,37 @@ func (store *ReviewPgStore) Add(request review.ReviewRequest) (review.Review, er
 	return r, nil
 }
 
+func (store *ReviewPgStore) GetAllReviews() ([]review.Review, error) {
+	rows, err := store.db.Query(context.Background(),
+		`SELECT review_id, essay_id, rank, content, author, created_at
+		FROM reviews
+		ORDER BY created_at DESC;`,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load reviews: %w", err)
+	}
+	defer rows.Close()
+
+	var reviews []review.Review
+	for rows.Next() {
+		var r review.Review
+		err = rows.Scan(
+			&r.ID,
+			&r.EssayId,
+			&r.Rank,
+			&r.Content,
+			&r.Author,
+			&r.CreatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan review: %w", err)
+		}
+		reviews = append(reviews, r)
+	}
+
+	return reviews, nil
+}
+
 func (store *ReviewPgStore) GetByEssayId(id int) ([]review.Review, error) {
 	rows, err := store.db.Query(context.Background(),
 		`SELECT review_id, essay_id, rank, content, author, created_at

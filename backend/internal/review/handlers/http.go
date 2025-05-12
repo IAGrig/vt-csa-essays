@@ -39,6 +39,16 @@ func (handler *ReviewHandler) CreateReview(c *gin.Context) {
 	c.JSON(http.StatusCreated, r)
 }
 
+func (handler *ReviewHandler) GetAllReviews(c *gin.Context) {
+	reviews, err := handler.service.GetAllReviews()
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, reviews)
+}
+
 func (handler *ReviewHandler) GetByEssayId(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("essayId"))
 	if err != nil {
