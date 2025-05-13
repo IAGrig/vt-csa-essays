@@ -51,13 +51,21 @@ func (h *EssayHandler) GetEssay(c *gin.Context) {
 }
 
 func (h *EssayHandler) GetAllEssays(c *gin.Context) {
-	essay, err := h.service.GetAllEssays()
+	searchContent := c.Query("search")
+
+	var essays []essay.EssayResponse
+	var err error
+	if searchContent == "" {
+		essays, err = h.service.GetAllEssays()
+	} else {
+		essays, err = h.service.SearchByContent(searchContent)
+	}
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, essay)
+	c.JSON(http.StatusOK, essays)
 }
 
 func (h *EssayHandler) RemoveEssay(c *gin.Context) {

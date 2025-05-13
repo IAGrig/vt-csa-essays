@@ -124,3 +124,31 @@ func (store *EssayPgStore) RemoveByAuthorName(username string) (essay.Essay, err
 
 	return e, nil
 }
+
+func (store *EssayPgStore) SearchByContent(content string) ([]essay.Essay, error) {
+	rows, err := store.db.Query(context.Background(),
+		`SELECT essay_id, content, author, created_at, similarity(lower(content), lower($1)) as siml
+		FROM essays
+		ORDER BY siml DESC
+		LIMIT 20;`,
+		content)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get essays: %w", err)
+	}
+	defer rows.Close()
+
+	var essays []essay.Essay
+	for rows.Next() {
+		var e essay.Essay
+		rows.Scan(
+			&e.ID,
+			&e.Content,
+			&e.Author,
+			&e.CreatedAt,
+			nil,
+		)
+		essays = append(essays, e)
+	}
+
+	return essays, nil
+}

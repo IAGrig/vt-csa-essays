@@ -7,4 +7,5 @@ type EssayStore interface {
 	GetAllEssays() ([]essay.Essay, error)
 	GetByAuthorName(username string) (essay.Essay, error)
 	RemoveByAuthorName(username string) (essay.Essay, error)
+	SearchByContent(string) ([]essay.Essay, error)
 }

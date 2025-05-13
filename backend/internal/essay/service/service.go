@@ -11,6 +11,7 @@ type EssaySevice interface {
 	GetAllEssays() ([]essay.EssayResponse, error)
 	GetByAuthorName(string) (essay.EssayWithReviewsResponse, error)
 	RemoveByAuthorName(string) (essay.EssayResponse, error)
+	SearchByContent(string) ([]essay.EssayResponse, error)
 }
 
 type service struct {
@@ -37,13 +38,9 @@ func (service *service) GetAllEssays() ([]essay.EssayResponse, error) {
 		return nil, err
 	}
 
-	responses := make([]essay.EssayResponse, len(essays))
-	for i, e := range essays {
-		response, err := service.essayToResponse(e)
-		if err != nil {
-			return []essay.EssayResponse{}, err
-		}
-		responses[i] = response
+	responses, err := service.essaysToResponces(essays)
+	if err != nil {
+		return nil, err
 	}
 
 	return responses, nil
@@ -65,4 +62,18 @@ func (service *service) RemoveByAuthorName(authorname string) (essay.EssayRespon
 	}
 
 	return service.essayToResponse(e)
+}
+
+func (service *service) SearchByContent(content string) ([]essay.EssayResponse, error) {
+	essays, err := service.essayStore.SearchByContent(content)
+	if err != nil {
+		return nil, err
+	}
+
+	responses, err := service.essaysToResponces(essays)
+	if err != nil {
+		return nil, err
+	}
+
+	return responses, nil
 }
