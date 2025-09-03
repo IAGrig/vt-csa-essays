@@ -15,13 +15,11 @@ import (
 	userhandlers "github.com/IAGrig/vt-csa-essays/internal/user/handlers"
 	userservice "github.com/IAGrig/vt-csa-essays/internal/user/service"
 	userstore "github.com/IAGrig/vt-csa-essays/internal/user/store"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	godotenv.Load()
-
 	accessSecret := []byte(os.Getenv("JWT_ACCESS_SECRET"))
 	refreshSecret := []byte(os.Getenv("JWT_REFRESH_SECRET"))
 
@@ -53,6 +51,15 @@ func main() {
 	essayHandler := essayhandlers.NewHttpHandler(essayService)
 
 	router := gin.Default()
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
+
 	publicApiGroup := router.Group("api")
 	{
 		userGroup := publicApiGroup.Group("user")
