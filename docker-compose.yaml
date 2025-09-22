@@ -20,9 +20,7 @@ services:
   migrations:
     image: backend:latest
     build:
-      context: ./backend
-      target: builder
-    command: ["sh", "-c", "goose -dir ./migrations postgres \"user=$POSTGRES_USER password=$POSTGRES_PASSWORD dbname=$POSTGRES_DB_NAME host=$POSTGRES_HOST port=$POSTGRES_PORT sslmode=disable\" up"]
+      context: ./backend/migrations
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
