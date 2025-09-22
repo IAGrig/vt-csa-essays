@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "github.com/IAGrig/vt-csa-essays/backend/proto/user";
+
+service UserService {
+	rpc Register(UserRegisterRequest) returns (UserResponse) {}
+	rpc Auth(UserLoginRequest) returns (AuthTokensResponse) {}
+	rpc GetByUsername(GetByUsernameRequest) returns (UserResponse) {}
+	rpc RefreshToken(RefreshTokenRequest) returns (AuthTokensResponse) {}
+}
+
+message UserRegisterRequest {
+	string username = 1;
+	string password = 2;
+}
+
+message UserResponse {
+	int32 id = 1;
+	string username = 2;
+	int64 created_at = 3;
+}
+
+message UserLoginRequest {
+	string username = 1;
+	string password = 2;
+}
+
+message AuthTokensResponse {
+	string access_token = 1;
+	string refresh_token = 2;
+}
+
+message GetByUsernameRequest {
+	string username = 1;
+}
+
+message RefreshTokenRequest {
+	string refresh_token = 1;
+}

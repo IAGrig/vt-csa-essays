@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package essay;
+
+import "review/review.proto";
+
+option go_package = "github.com/IAGrig/vt-csa-essays/backend/proto/essay";
+
+service EssayService {
+	rpc Add(EssayAddRequest) returns (EssayResponse) {}
+	rpc GetAllEssays(EmptyRequest) returns (stream EssayResponse) {}
+	rpc GetByAuthorName(GetByAuthorNameRequest) returns (EssayWithReviewsResponse) {}
+	rpc RemoveByAuthorName(RemoveByAuthorNameRequest) returns (EssayResponse) {}
+	rpc SearchByContent(SearchByContentRequest) returns (stream EssayResponse) {}
+}
+
+message EssayAddRequest {
+	string content = 1;
+	string author = 2;
+}
+
+message EssayResponse {
+	int32 id = 1;
+	string content = 2;
+	string author = 3;
+	int64 created_at = 4;
+}
+
+message EmptyRequest {
+}
+
+message GetByAuthorNameRequest {
+	string authorname = 1;
+}
+
+message EssayWithReviewsResponse {
+	int32 id = 1;
+	string content = 2;
+	string author = 3;
+	int64 created_at = 4;
+	repeated review.ReviewResponse reviews = 5;
+}
+
+message RemoveByAuthorNameRequest {
+	string authorname = 1;
+}
+
+message SearchByContentRequest {
+	string content = 1;
+}
