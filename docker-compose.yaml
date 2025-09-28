@@ -34,22 +34,67 @@ services:
       - app-network
     restart: "no"
 
-  backend:
+  api-gateway:
     build:
       context: ./backend
+      dockerfile: api-gateway/Dockerfile
     environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB_NAME: ${POSTGRES_DB_NAME}
+      AUTH_SERVICE_GRPC_PORT: 50051
+      ESSAY_SERVICE_GRPC_PORT: 50052
+      REVIEW_SERVICE_GRPC_PORT: 50053
+    depends_on:
+      auth-service:
+        condition: service_started
+      essay-service:
+        condition: service_started
+      review-service:
+        condition: service_started
+    networks:
+      - app-network
+    ports:
+      - "8080:8080"
+
+  auth-service:
+    build:
+      context: ./backend
+      dockerfile: auth-service/Dockerfile
+    environment:
+      AUTH_SERVICE_GRPC_PORT: 50051
+    env_file: .env # JWT and postgres secrets
     depends_on:
       migrations:
         condition: service_completed_successfully
     networks:
       - app-network
-    ports:
-      - "8080:8080"
+
+  essay-service:
+    build:
+      context: ./backend
+      dockerfile: essay-service/Dockerfile
+    environment:
+      ESSAY_SERVICE_GRPC_PORT: 50052
+      REVIEW_SERVICE_GRPC_PORT: 50053
+    env_file: .env # postgres secrets
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+      review-service:
+        condition: service_started
+    networks:
+      - app-network
+
+  review-service:
+    build:
+      context: ./backend
+      dockerfile: review-service/Dockerfile
+    environment:
+      REVIEW_SERVICE_GRPC_PORT: 50053
+    env_file: .env # postgres secrets
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+    networks:
+      - app-network
 
   frontend:
     build:
@@ -57,7 +102,7 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - backend
+      - api-gateway
     networks:
       - app-network
 

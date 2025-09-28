@@ -1,0 +1,10 @@
+go 1.25.1
+
+use (
+	./api-gateway
+	./auth-service
+	./essay-service
+	./proto
+	./review-service
+	./shared
+)
