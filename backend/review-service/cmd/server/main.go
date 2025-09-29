@@ -12,6 +12,7 @@ import (
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/kafka"
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/repository"
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/service"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/monitoring"
 
 	pb "github.com/IAGrig/vt-csa-essays/backend/proto/review"
 )
@@ -19,6 +20,9 @@ import (
 func main() {
 	port := os.Getenv("REVIEW_SERVICE_GRPC_PORT")
 	kafkaBrokers := os.Getenv("KAFKA_BROKERS")
+	monitoringPort := os.Getenv("MONITORING_PORT")
+
+	monitoring.StartMetricsServer(monitoringPort)
 
 	repo, err := repository.NewReviewPgRepository()
 	if err != nil {
@@ -26,7 +30,7 @@ func main() {
 	}
 
 	brokers := strings.Split(kafkaBrokers, ",")
-    producer := kafka.NewProducer(brokers, "notifications")
+	producer := kafka.NewProducer(brokers, "notifications")
 
 	reviewService := service.New(repo, producer)
 

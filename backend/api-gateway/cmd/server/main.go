@@ -10,6 +10,7 @@ import (
 	"github.com/IAGrig/vt-csa-essays/backend/api-gateway/internal/clients"
 	"github.com/IAGrig/vt-csa-essays/backend/api-gateway/internal/handlers"
 	"github.com/IAGrig/vt-csa-essays/backend/api-gateway/internal/middleware"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/monitoring"
 )
 
 func main() {
@@ -17,6 +18,9 @@ func main() {
 	essayServicePort := os.Getenv("ESSAY_SERVICE_GRPC_PORT")
 	reviewServicePort := os.Getenv("REVIEW_SERVICE_GRPC_PORT")
 	notificationServicePort := os.Getenv("NOTIFICATIONS_SERVICE_GRPC_PORT")
+	monitoringPort := os.Getenv("MONITORING_PORT")
+
+	monitoring.StartMetricsServer(monitoringPort)
 
 	authClient, err := clients.NewAuthClient("auth-service:" + authServicePort)
 	if err != nil {
@@ -48,6 +52,8 @@ func main() {
 	notificationHandler := handlers.NewNotificationHandler(notificationClient)
 
 	router := gin.Default()
+
+	router.Use(monitoring.GinMiddleware())
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:	 []string{"http://localhost"},

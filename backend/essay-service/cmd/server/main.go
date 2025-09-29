@@ -11,6 +11,7 @@ import (
 
 	"github.com/IAGrig/vt-csa-essays/backend/essay-service/internal/repository"
 	"github.com/IAGrig/vt-csa-essays/backend/essay-service/internal/service"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/monitoring"
 
 	pb "github.com/IAGrig/vt-csa-essays/backend/proto/essay"
 	reviewPb "github.com/IAGrig/vt-csa-essays/backend/proto/review"
@@ -19,6 +20,9 @@ import (
 func main() {
 	port := os.Getenv("ESSAY_SERVICE_GRPC_PORT")
 	reviewServicePort := os.Getenv("REVIEW_SERVICE_GRPC_PORT")
+	monitoringPort := os.Getenv("MONITORING_PORT")
+
+	monitoring.StartMetricsServer(monitoringPort)
 
 	repo, err := repository.NewEssayPgRepository()
 	if err != nil {

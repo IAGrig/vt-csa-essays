@@ -5,35 +5,35 @@ package notification;
 option go_package = "github.com/IAGrig/vt-csa-essays/backend/proto/notification";
 
 service NotificationService {
-    rpc GetByUserID(GetByUserIDRequest) returns (stream NotificationResponse) {}
-    rpc MarkAsRead(MarkAsReadRequest) returns (MarkAsReadResponse) {}
-    rpc MarkAllAsRead(MarkAllAsReadRequest) returns (MarkAllAsReadResponse) {}
+	rpc GetByUserID(GetByUserIDRequest) returns (stream NotificationResponse) {}
+	rpc MarkAsRead(MarkAsReadRequest) returns (MarkAsReadResponse) {}
+	rpc MarkAllAsRead(MarkAllAsReadRequest) returns (MarkAllAsReadResponse) {}
 }
 
 message GetByUserIDRequest {
-    int64 user_id = 1;
+	int64 user_id = 1;
 }
 
 message NotificationResponse {
-    int64 notification_id = 1;
-    int64 user_id = 2;
-    string content = 3;
-    bool is_read = 4;
-    int64 created_at = 5;
+	int64 notification_id = 1;
+	int64 user_id = 2;
+	string content = 3;
+	bool is_read = 4;
+	int64 created_at = 5;
 }
 
 message MarkAsReadRequest {
-    int64 notification_id = 1;
+	int64 notification_id = 1;
 }
 
 message MarkAsReadResponse {
-    bool success = 1;
+	bool success = 1;
 }
 
 message MarkAllAsReadRequest {
-    int64 user_id = 1;
+	int64 user_id = 1;
 }
 
 message MarkAllAsReadResponse {
-    bool success = 1;
+	bool success = 1;
 }

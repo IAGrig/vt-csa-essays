@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/kafka"
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/models"
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/repository"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/monitoring"
 	"google.golang.org/grpc"
 
 	pb "github.com/IAGrig/vt-csa-essays/backend/proto/review"
@@ -37,6 +39,8 @@ func NewForTest(repository repository.ReviewRepository, producer kafka.Producer)
 }
 
 func (s *reviewService) Add(ctx context.Context, in *pb.ReviewAddRequest) (*pb.ReviewResponse, error) {
+	start := time.Now()
+
 	req := models.ReviewRequest{
 		EssayId: int(in.EssayId),
 		Rank:    int(in.Rank),
@@ -46,10 +50,18 @@ func (s *reviewService) Add(ctx context.Context, in *pb.ReviewAddRequest) (*pb.R
 
 	review, err := s.repository.Add(req)
 	if err != nil {
+		monitoring.GrpcRequestDuration.WithLabelValues("review", "add", "error").Observe(float64(time.Since(start).Milliseconds()))
+		monitoring.GrpcRequestsTotal.WithLabelValues("review", "add", "success").Inc()
 		return nil, err
 	}
 
+	duration := time.Since(start).Seconds()
+	monitoring.GrpcRequestDuration.WithLabelValues("review", "Add", "success").Observe(duration)
+	monitoring.GrpcRequestsTotal.WithLabelValues("review", "Add", "success").Inc()
+	monitoring.ReviewsCreated.Inc()
+
 	if s.producer != nil {
+		kafkaStart := time.Now()
 		event := kafka.NotificationEvent{
 			Type:     "new_review",
 			UserID:   0, // placeholder
@@ -62,14 +74,18 @@ func (s *reviewService) Add(ctx context.Context, in *pb.ReviewAddRequest) (*pb.R
 		if s.testMode {
 			// synchronous call for tests
 			if err := s.producer.SendNotificationEvent(ctx, event); err != nil {
+				monitoring.KafkaMessagesProcessed.WithLabelValues("notifications", "producer_error").Inc()
 				log.Printf("Failed to send notification event: %v", err)
 			}
 		} else {
 			// asynchronous call for production
 			go func() {
 				if err := s.producer.SendNotificationEvent(context.Background(), event); err != nil {
-					log.Printf("Failed to send notification event: %v", err)
+					monitoring.KafkaMessagesProcessed.WithLabelValues("notifications", "producer_error").Inc()
 				}
+				kafkaDuration := time.Since(kafkaStart).Seconds()
+				monitoring.DbQueryDuration.WithLabelValues("kafka_produce", "notifications").Observe(kafkaDuration)
+log.Printf("Failed to send notification event: %v", err)
 			}()
 		}
 	}
