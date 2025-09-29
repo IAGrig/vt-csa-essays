@@ -1,11 +1,11 @@
-module github.com/IAGrig/vt-csa-essays/backend/review-service
+module github.com/IAGrig/vt-csa-essays/backend/notification-service
 
 go 1.25.1
 
 require (
 	github.com/IAGrig/vt-csa-essays/backend/proto v0.0.0-20250929051306-0467fcb3fd68
 	github.com/IAGrig/vt-csa-essays/backend/shared v0.0.0-20250929051306-0467fcb3fd68
-	github.com/jackc/pgx/v5 v5.7.5
+	github.com/jackc/pgx/v5 v5.7.6
 	github.com/pressly/goose/v3 v3.25.0
 	github.com/segmentio/kafka-go v0.4.49
 	github.com/stretchr/testify v1.11.0

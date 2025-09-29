@@ -3,8 +3,8 @@ WORKDIR /app
 
 COPY go.work go.work.sum ./
 COPY auth-service/go.mod auth-service/go.sum ./auth-service/
-#COPY essay-service/go.mod essay-service/go.sum ./essay-service/
-COPY essay-service/go.mod ./essay-service/
+COPY essay-service/go.mod essay-service/go.sum ./essay-service/
+COPY notification-service/go.mod notification-service/go.sum ./notification-service/
 COPY review-service/go.mod review-service/go.sum ./review-service/
 COPY proto ./proto
 COPY shared ./shared

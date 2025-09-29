@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/models"
-	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/repository"
-	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/service"
+	"github.com/IAGrig/vt-csa-essays/backend/notification-service/internal/models"
+	"github.com/IAGrig/vt-csa-essays/backend/notification-service/internal/repository"
+	"github.com/IAGrig/vt-csa-essays/backend/notification-service/internal/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -22,21 +22,21 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 
-	pb "github.com/IAGrig/vt-csa-essays/backend/proto/review"
+	pb "github.com/IAGrig/vt-csa-essays/backend/proto/notification"
 )
 
 var (
-	testService pb.ReviewServiceServer
-	testRepo	repository.ReviewRepository
+	testService pb.NotificationServiceServer
+	testRepo    repository.NotificationRepository
 )
 
 type mockStream struct {
-	reviews []*pb.ReviewResponse
+	notifications []*pb.NotificationResponse
 	grpc.ServerStream
 }
 
-func (m *mockStream) Send(review *pb.ReviewResponse) error {
-	m.reviews = append(m.reviews, review)
+func (m *mockStream) Send(notification *pb.NotificationResponse) error {
+	m.notifications = append(m.notifications, notification)
 	return nil
 }
 
@@ -70,13 +70,13 @@ func TestMain(m *testing.M) {
 	}()
 
 	var repoErr error
-	testRepo, repoErr = repository.NewReviewPgRepository()
+	testRepo, repoErr = repository.NewNotificationPgRepository()
 	if repoErr != nil {
 		fmt.Printf("Failed to create repository: %v\n", repoErr)
 		os.Exit(1)
 	}
 
-	testService = service.New(testRepo, nil)
+	testService = service.New(testRepo)
 
 	code := m.Run()
 	os.Exit(code)
@@ -176,150 +176,152 @@ func getMigrationsPath() (string, error) {
 	return "", fmt.Errorf("migrations directory not found. Tried: %v", possiblePaths)
 }
 
-func TestIntegrationReviewService_Add(t *testing.T) {
+func TestIntegrationNotificationService_GetByUserID(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
 	}
 
 	cleanupTables(t)
-	insertTestUser(t, "test-author")
-	insertTestEssay(t, 1, "test-author")
 
-	req := &pb.ReviewAddRequest{
-		EssayId: 1,
-		Rank:	2,
-		Content: "Test review content",
-		Author:  "test-author",
-	}
+	user1ID := insertTestUser(t, "user1")
+	user2ID := insertTestUser(t, "user2")
 
-	ctx := context.Background()
-	resp, err := testService.Add(ctx, req)
-
-	require.NoError(t, err)
-	assert.NotZero(t, resp.Id)
-	assert.Equal(t, req.EssayId, resp.EssayId)
-	assert.Equal(t, req.Rank, resp.Rank)
-	assert.Equal(t, req.Content, resp.Content)
-	assert.Equal(t, req.Author, resp.Author)
-	assert.NotZero(t, resp.CreatedAt)
-}
-
-func TestIntegrationReviewService_GetByEssayId(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
-
-	cleanupTables(t)
-	insertTestUser(t, "author1")
-	insertTestUser(t, "author2")
-	insertTestUser(t, "test-author")
-	insertTestEssay(t, 1, "test-author")
-	insertTestEssay(t, 2, "test-author")
-
-	_, err := testRepo.Add(models.ReviewRequest{EssayId: 1, Rank: 2, Content: "Review 1", Author: "author1"})
-	require.NoError(t, err)
-	_, err = testRepo.Add(models.ReviewRequest{EssayId: 1, Rank: 1, Content: "Review 2", Author: "author2"})
-	require.NoError(t, err)
-	_, err = testRepo.Add(models.ReviewRequest{EssayId: 2, Rank: 3, Content: "Review 3", Author: "author1"})
-	require.NoError(t, err)
-
-	req := &pb.GetByEssayIdRequest{EssayId: 1}
-	stream := &mockStream{}
-
-	err = testService.GetByEssayId(req, stream)
-	require.NoError(t, err)
-	assert.Len(t, stream.reviews, 2)
-
-	for _, review := range stream.reviews {
-		assert.Equal(t, int32(1), review.EssayId)
-	}
-}
-
-func TestIntegrationReviewService_GetAllReviews(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
-
-	cleanupTables(t)
-	insertTestUser(t, "author1")
-	insertTestUser(t, "author2")
-	insertTestUser(t, "test-author")
-	insertTestEssay(t, 1, "test-author")
-	insertTestEssay(t, 2, "test-author")
-
-	_, err := testRepo.Add(models.ReviewRequest{EssayId: 1, Rank: 2, Content: "Review 1", Author: "author1"})
-	require.NoError(t, err)
-	_, err = testRepo.Add(models.ReviewRequest{EssayId: 2, Rank: 1, Content: "Review 2", Author: "author2"})
-	require.NoError(t, err)
-
-	req := &pb.EmptyRequest{}
-	stream := &mockStream{}
-
-	err = testService.GetAllReviews(req, stream)
-	require.NoError(t, err)
-	assert.Len(t, stream.reviews, 2)
-}
-
-func TestIntegrationReviewService_RemoveById(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
-
-	cleanupTables(t)
-	insertTestUser(t, "test-author")
-	insertTestEssay(t, 1, "test-author")
-
-	addedReview, err := testRepo.Add(models.ReviewRequest{
-		EssayId: 1,
-		Rank:	2,
-		Content: "To be removed",
-		Author:  "test-author",
+	_, err := testRepo.Create(models.NotificationRequest{
+		UserID:  user1ID,
+		Content: "Test notification 1",
 	})
 	require.NoError(t, err)
 
-	ctx := context.Background()
-	req := &pb.RemoveByIdRequest{Id: int32(addedReview.ID)}
-	resp, err := testService.RemoveById(ctx, req)
-
+	_, err = testRepo.Create(models.NotificationRequest{
+		UserID:  user1ID,
+		Content: "Test notification 2",
+	})
 	require.NoError(t, err)
-	assert.Equal(t, int32(addedReview.ID), resp.Id)
 
+	_, err = testRepo.Create(models.NotificationRequest{
+		UserID:  user2ID,
+		Content: "Other user notification",
+	})
+	require.NoError(t, err)
+
+	req := &pb.GetByUserIDRequest{UserId: user1ID}
 	stream := &mockStream{}
-	err = testService.GetByEssayId(&pb.GetByEssayIdRequest{EssayId: 1}, stream)
+
+	err = testService.GetByUserID(req, stream)
 	require.NoError(t, err)
-	assert.Len(t, stream.reviews, 0)
+	assert.Len(t, stream.notifications, 2)
+
+	for _, notification := range stream.notifications {
+		assert.Equal(t, user1ID, notification.UserId)
+	}
+}
+
+func TestIntegrationNotificationService_MarkAsRead(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
+	cleanupTables(t)
+	userID := insertTestUser(t, "user1")
+
+	notification, err := testRepo.Create(models.NotificationRequest{
+		UserID:  userID,
+		Content: "Test notification",
+	})
+	require.NoError(t, err)
+
+	initialNotification, err := testRepo.GetByID(notification.NotificationID)
+	require.NoError(t, err)
+	assert.False(t, initialNotification.IsRead)
+
+	req := &pb.MarkAsReadRequest{NotificationId: notification.NotificationID}
+	resp, err := testService.MarkAsRead(context.Background(), req)
+
+	require.NoError(t, err)
+	assert.True(t, resp.Success)
+
+	updatedNotification, err := testRepo.GetByID(notification.NotificationID)
+	require.NoError(t, err)
+	assert.True(t, updatedNotification.IsRead)
+}
+
+func TestIntegrationNotificationService_MarkAllAsRead(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
+	cleanupTables(t)
+	user1ID := insertTestUser(t, "user1")
+	user2ID := insertTestUser(t, "user2")
+
+	_, err := testRepo.Create(models.NotificationRequest{
+		UserID:  user1ID,
+		Content: "Test notification 1",
+	})
+	require.NoError(t, err)
+
+	_, err = testRepo.Create(models.NotificationRequest{
+		UserID:  user1ID,
+		Content: "Test notification 2",
+	})
+	require.NoError(t, err)
+
+	_, err = testRepo.Create(models.NotificationRequest{
+		UserID:  user2ID,
+		Content: "Other user notification",
+	})
+	require.NoError(t, err)
+
+	req := &pb.MarkAllAsReadRequest{UserId: user1ID}
+	resp, err := testService.MarkAllAsRead(context.Background(), req)
+
+	require.NoError(t, err)
+	assert.True(t, resp.Success)
+
+	notifications, err := testRepo.GetByUserID(user1ID)
+	require.NoError(t, err)
+
+	for _, notification := range notifications {
+		assert.True(t, notification.IsRead)
+	}
+
+	user2Notifications, err := testRepo.GetByUserID(user2ID)
+	require.NoError(t, err)
+	assert.False(t, user2Notifications[0].IsRead)
 }
 
 func cleanupTables(t *testing.T) {
 	t.Helper()
 
-	reviews, err := testRepo.GetAllReviews()
+	repo := testRepo.(*repository.NotificationPgRepository)
+	_, err := repo.DB().Exec(context.Background(), "DELETE FROM notifications")
 	if err != nil {
-		return
+		t.Logf("Error cleaning up notifications: %v", err)
 	}
 
-	for _, review := range reviews {
-		_, _ = testRepo.RemoveById(review.ID)
+	_, err = repo.DB().Exec(context.Background(), "DELETE FROM users")
+	if err != nil {
+		t.Logf("Error cleaning up users: %v", err)
 	}
 }
 
-func insertTestUser(t *testing.T, username string) {
+func insertTestUser(t *testing.T, username string) int64 {
 	t.Helper()
 
 	validBcryptHash := "$2a$10$abcdefghijklmnopqrstuuxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
-	repo := testRepo.(*repository.ReviewPgRepository)
-	_, err := repo.DB().Exec(context.Background(),
-		"INSERT INTO users (username, password_hash) VALUES ($1, $2) ON CONFLICT (username) DO NOTHING",
-		username, validBcryptHash)
-	require.NoError(t, err)
-}
+	repo := testRepo.(*repository.NotificationPgRepository)
 
-func insertTestEssay(t *testing.T, essayId int, author string) {
-	t.Helper()
-	repo := testRepo.(*repository.ReviewPgRepository)
-	_, err := repo.DB().Exec(context.Background(),
-		"INSERT INTO essays (essay_id, content, author) VALUES ($1, $2, $3) ON CONFLICT (essay_id) DO NOTHING",
-		essayId, "Test essay content", author)
-	require.NoError(t, err)
+	var userID int64
+	err := repo.DB().QueryRow(context.Background(),
+		"INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING user_id",
+		username, validBcryptHash).Scan(&userID)
+
+	if err != nil {
+		err = repo.DB().QueryRow(context.Background(),
+			"SELECT user_id FROM users WHERE username = $1", username).Scan(&userID)
+		require.NoError(t, err, "Failed to get user ID for username: %s", username)
+	}
+
+	return userID
 }

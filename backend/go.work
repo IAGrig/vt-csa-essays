@@ -4,6 +4,7 @@ use (
 	./api-gateway
 	./auth-service
 	./essay-service
+	./notification-service
 	./proto
 	./review-service
 	./shared

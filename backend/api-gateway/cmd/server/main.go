@@ -16,6 +16,7 @@ func main() {
 	authServicePort := os.Getenv("AUTH_SERVICE_GRPC_PORT")
 	essayServicePort := os.Getenv("ESSAY_SERVICE_GRPC_PORT")
 	reviewServicePort := os.Getenv("REVIEW_SERVICE_GRPC_PORT")
+	notificationServicePort := os.Getenv("NOTIFICATIONS_SERVICE_GRPC_PORT")
 
 	authClient, err := clients.NewAuthClient("auth-service:" + authServicePort)
 	if err != nil {
@@ -35,9 +36,16 @@ func main() {
 	}
 	defer reviewClient.Close()
 
+	notificationClient, err := clients.NewNotificationClient("notification-service:" + notificationServicePort)
+	if err != nil {
+		log.Fatalf("Failed to create notification client: %v", err)
+	}
+	defer notificationClient.Close()
+
 	authHandler := handlers.NewAuthHandler(authClient)
 	essayHandler := handlers.NewEssayHandler(essayClient)
 	reviewHandler := handlers.NewReviewHandler(reviewClient)
+	notificationHandler := handlers.NewNotificationHandler(notificationClient)
 
 	router := gin.Default()
 
@@ -85,6 +93,13 @@ func main() {
 		{
 			reviewGroup.POST("", reviewHandler.CreateReview)
 			reviewGroup.DELETE("/:reviewId", reviewHandler.RemoveById)
+		}
+
+		notificationGroup := protectedApiGroup.Group("/notifications")
+		{
+			notificationGroup.GET("", notificationHandler.GetUserNotifications)
+			notificationGroup.POST("/mark-read-all", notificationHandler.MarkAllAsRead)
+			notificationGroup.POST("/:notificationId/read", notificationHandler.MarkAsRead)
 		}
 	}
 
