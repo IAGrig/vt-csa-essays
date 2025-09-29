@@ -95,3 +95,7 @@ func (repository *UserPgRepository) GetByUsername(username string) (models.User,
 
 	return usr, nil
 }
+
+func (repository *UserPgRepository) DB() *pgxpool.Pool {
+	return repository.db
+}

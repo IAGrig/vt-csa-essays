@@ -152,3 +152,7 @@ func (repository *EssayPgRepository) SearchByContent(content string) ([]models.E
 
 	return essays, nil
 }
+
+func (repository *EssayPgRepository) DB() *pgxpool.Pool {
+	return repository.db
+}

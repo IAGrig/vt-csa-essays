@@ -136,3 +136,7 @@ func (repository *ReviewPgRepository) RemoveById(id int) (models.Review, error) 
 
 	return r, nil
 }
+
+func (repository *ReviewPgRepository) DB() *pgxpool.Pool {
+	return repository.db
+}
