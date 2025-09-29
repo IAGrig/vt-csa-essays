@@ -11,7 +11,9 @@ import (
 
 	"github.com/IAGrig/vt-csa-essays/backend/essay-service/internal/repository"
 	"github.com/IAGrig/vt-csa-essays/backend/essay-service/internal/service"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	"github.com/IAGrig/vt-csa-essays/backend/shared/monitoring"
+	"go.uber.org/zap"
 
 	pb "github.com/IAGrig/vt-csa-essays/backend/proto/essay"
 	reviewPb "github.com/IAGrig/vt-csa-essays/backend/proto/review"
@@ -22,34 +24,46 @@ func main() {
 	reviewServicePort := os.Getenv("REVIEW_SERVICE_GRPC_PORT")
 	monitoringPort := os.Getenv("MONITORING_PORT")
 
+	logger := logging.New("essay-service")
+	defer logger.Sync()
+
+	logger.Info("Starting essay service",
+		zap.String("port", port),
+		zap.String("review_service_port", reviewServicePort),
+		zap.String("monitoring_port", monitoringPort))
+
 	monitoring.StartMetricsServer(monitoringPort)
 
-	repo, err := repository.NewEssayPgRepository()
+	repo, err := repository.NewEssayPgRepository(logger)
 	if err != nil {
+		logger.Error("Failed to create essay repository", zap.Error(err))
 		panic(fmt.Errorf("failed to create essay repository: %w", err))
 	}
 
 	reviewConn, err := grpc.NewClient(
-		"review-service:" + reviewServicePort,
+		"review-service:"+reviewServicePort,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
+		logger.Error("Failed to connect to review service", zap.Error(err))
 		log.Fatalf("Failed to connect to review service: %v", err)
 	}
 	defer reviewConn.Close()
 
 	reviewClient := reviewPb.NewReviewServiceClient(reviewConn)
 
-	essayService := service.New(repo, reviewClient)
+	essayService := service.New(repo, reviewClient, logger)
 
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterEssayServiceServer(grpcServer, essayService)
 
-	lis, err := net.Listen("tcp", "0.0.0.0:" + port)
+	lis, err := net.Listen("tcp", "0.0.0.0:"+port)
 	if err != nil {
+		logger.Error("Failed to listen", zap.Error(err))
 		log.Fatalf("failed to listen: %v", err)
 	}
 
+	logger.Info("Essay service started successfully", zap.String("address", lis.Addr().String()))
 	grpcServer.Serve(lis)
 }

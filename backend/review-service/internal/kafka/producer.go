@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+
+	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
+	"go.uber.org/zap"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -25,10 +27,10 @@ type Producer interface {
 
 type KafkaProducer struct {
 	writer *kafka.Writer
+	logger *logging.Logger
 }
 
-
-func NewProducer(brokers []string, topic string) Producer {
+func NewProducer(brokers []string, topic string, logger *logging.Logger) Producer {
 	writer := &kafka.Writer{
 		Addr:     kafka.TCP(brokers...),
 		Topic:    topic,
@@ -37,12 +39,25 @@ func NewProducer(brokers []string, topic string) Producer {
 
 	return &KafkaProducer{
 		writer: writer,
+		logger: logger,
 	}
 }
 
 func (p *KafkaProducer) SendNotificationEvent(ctx context.Context, event NotificationEvent) error {
+	logger := p.logger.With(
+		zap.String("operation", "send_notification_event"),
+		zap.String("type", event.Type),
+		zap.Int64("user_id", event.UserID),
+		zap.Int64("essay_id", event.EssayID),
+		zap.Int64("review_id", event.ReviewID),
+		zap.String("author", event.Author),
+	)
+
+	logger.Debug("Sending notification event to Kafka")
+
 	eventBytes, err := json.Marshal(event)
 	if err != nil {
+		logger.Error("Failed to marshal notification event", zap.Error(err))
 		return fmt.Errorf("failed to marshal event: %w", err)
 	}
 
@@ -50,13 +65,15 @@ func (p *KafkaProducer) SendNotificationEvent(ctx context.Context, event Notific
 		Value: eventBytes,
 	})
 	if err != nil {
+		logger.Error("Failed to write message to Kafka", zap.Error(err))
 		return fmt.Errorf("failed to write message: %w", err)
 	}
 
-	log.Printf("Sent notification event for user %d", event.UserID)
+	logger.Info("Notification event sent successfully")
 	return nil
 }
 
 func (p *KafkaProducer) Close() error {
+	p.logger.Debug("Closing Kafka producer")
 	return p.writer.Close()
 }

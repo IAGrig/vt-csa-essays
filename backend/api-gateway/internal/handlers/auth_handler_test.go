@@ -9,6 +9,7 @@ import (
 
 	"github.com/IAGrig/vt-csa-essays/backend/api-gateway/internal/clients/mocks"
 	"github.com/IAGrig/vt-csa-essays/backend/api-gateway/internal/handlers"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -94,7 +95,8 @@ func TestAuthHandler_Register(t *testing.T) {
 			mockAuthClient := new(mocks.MockAuthClient)
 			tt.setupMock(mockAuthClient)
 
-			handler := handlers.NewAuthHandler(mockAuthClient)
+			logger := logging.NewEmptyLogger()
+			handler := handlers.NewAuthHandler(mockAuthClient, logger)
 
 			router := gin.New()
 			router.POST("/register", handler.Register)
@@ -182,7 +184,8 @@ func TestAuthHandler_Login(t *testing.T) {
 			mockAuthClient := new(mocks.MockAuthClient)
 			tt.setupMock(mockAuthClient)
 
-			handler := handlers.NewAuthHandler(mockAuthClient)
+			logger := logging.NewEmptyLogger()
+			handler := handlers.NewAuthHandler(mockAuthClient, logger)
 
 			router := gin.New()
 			router.POST("/login", handler.Login)
@@ -260,7 +263,8 @@ func TestAuthHandler_RefreshToken(t *testing.T) {
 			mockAuthClient := new(mocks.MockAuthClient)
 			tt.setupMock(mockAuthClient)
 
-			handler := handlers.NewAuthHandler(mockAuthClient)
+			logger := logging.NewEmptyLogger()
+			handler := handlers.NewAuthHandler(mockAuthClient, logger)
 
 			router := gin.New()
 			router.POST("/refresh", handler.RefreshToken)
@@ -342,7 +346,8 @@ func TestAuthHandler_GetUser(t *testing.T) {
 			mockAuthClient := new(mocks.MockAuthClient)
 			tt.setupMock(mockAuthClient)
 
-			handler := handlers.NewAuthHandler(mockAuthClient)
+			logger := logging.NewEmptyLogger()
+			handler := handlers.NewAuthHandler(mockAuthClient, logger)
 
 			router := gin.New()
 			router.GET("/user/:username", handler.GetUser)

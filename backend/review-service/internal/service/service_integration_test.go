@@ -11,6 +11,7 @@ import (
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/models"
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/repository"
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/service"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -27,7 +28,7 @@ import (
 
 var (
 	testService pb.ReviewServiceServer
-	testRepo	repository.ReviewRepository
+	testRepo    repository.ReviewRepository
 )
 
 type mockStream struct {
@@ -69,14 +70,15 @@ func TestMain(m *testing.M) {
 		}
 	}()
 
+	logger := logging.NewEmptyLogger()
 	var repoErr error
-	testRepo, repoErr = repository.NewReviewPgRepository()
+	testRepo, repoErr = repository.NewReviewPgRepository(logger)
 	if repoErr != nil {
 		fmt.Printf("Failed to create repository: %v\n", repoErr)
 		os.Exit(1)
 	}
 
-	testService = service.New(testRepo, nil)
+	testService = service.New(testRepo, nil, logger)
 
 	code := m.Run()
 	os.Exit(code)
@@ -187,7 +189,7 @@ func TestIntegrationReviewService_Add(t *testing.T) {
 
 	req := &pb.ReviewAddRequest{
 		EssayId: 1,
-		Rank:	2,
+		Rank:    2,
 		Content: "Test review content",
 		Author:  "test-author",
 	}
@@ -271,7 +273,7 @@ func TestIntegrationReviewService_RemoveById(t *testing.T) {
 
 	addedReview, err := testRepo.Add(models.ReviewRequest{
 		EssayId: 1,
-		Rank:	2,
+		Rank:    2,
 		Content: "To be removed",
 		Author:  "test-author",
 	})

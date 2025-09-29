@@ -6,6 +6,7 @@ import (
 
 	"github.com/IAGrig/vt-csa-essays/backend/notification-service/internal/models"
 	repoMocks "github.com/IAGrig/vt-csa-essays/backend/notification-service/internal/repository/mocks"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	pb "github.com/IAGrig/vt-csa-essays/backend/proto/notification"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
@@ -115,7 +116,8 @@ func TestNotificationService_GetByUserID(t *testing.T) {
 				sendError: tt.sendError,
 			}
 
-			service := New(mockRepo)
+			logger := logging.NewEmptyLogger()
+			service := New(mockRepo, logger)
 			err := service.GetByUserID(tt.input, stream)
 
 			if tt.expectedError {
@@ -173,7 +175,8 @@ func TestNotificationService_MarkAsRead(t *testing.T) {
 			mockRepo := new(repoMocks.MockNotificationRepository)
 			tt.setupMock(mockRepo)
 
-			service := New(mockRepo)
+			logger := logging.NewEmptyLogger()
+			service := New(mockRepo, logger)
 			result, err := service.MarkAsRead(context.Background(), tt.input)
 
 			if tt.expectedError {
@@ -221,7 +224,8 @@ func TestNotificationService_MarkAllAsRead(t *testing.T) {
 			mockRepo := new(repoMocks.MockNotificationRepository)
 			tt.setupMock(mockRepo)
 
-			service := New(mockRepo)
+			logger := logging.NewEmptyLogger()
+			service := New(mockRepo, logger)
 			result, err := service.MarkAllAsRead(context.Background(), tt.input)
 
 			if tt.expectedError {

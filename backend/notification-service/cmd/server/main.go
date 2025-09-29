@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -13,7 +11,9 @@ import (
 	"github.com/IAGrig/vt-csa-essays/backend/notification-service/internal/kafka"
 	"github.com/IAGrig/vt-csa-essays/backend/notification-service/internal/repository"
 	"github.com/IAGrig/vt-csa-essays/backend/notification-service/internal/service"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	"github.com/IAGrig/vt-csa-essays/backend/shared/monitoring"
+	"go.uber.org/zap"
 
 	"google.golang.org/grpc"
 
@@ -21,21 +21,30 @@ import (
 )
 
 func main() {
+	logger := logging.New("notification-service")
+	defer logger.Sync()
+
 	port := os.Getenv("NOTIFICATIONS_SERVICE_GRPC_PORT")
 	kafkaBrokers := os.Getenv("KAFKA_BROKERS")
 	monitoringPort := os.Getenv("MONITORING_PORT")
 
+	logger.Info("Starting notification service",
+		zap.String("port", port),
+		zap.String("kafka_brokers", kafkaBrokers),
+		zap.String("monitoring_port", monitoringPort))
+
 	monitoring.StartMetricsServer(monitoringPort)
 
-	repo, err := repository.NewNotificationPgRepository()
+	repo, err := repository.NewNotificationPgRepository(logger)
 	if err != nil {
-		panic(fmt.Errorf("failed to create notification repository: %w", err))
+		logger.Fatal("Failed to create notification repository",
+			zap.Error(err))
 	}
 
 	brokers := strings.Split(kafkaBrokers, ",")
-	consumer := kafka.NewConsumer(brokers, "notifications", "notification-service", repo)
+	consumer := kafka.NewConsumer(brokers, "notifications", "notification-service", repo, logger)
 
-	notificationService := service.New(repo)
+	notificationService := service.New(repo, logger)
 
 	var opts []grpc.ServerOption
 
@@ -44,29 +53,29 @@ func main() {
 
 	lis, err := net.Listen("tcp", "0.0.0.0:"+port)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		logger.Fatal("Failed to listen",
+			zap.Error(err),
+			zap.String("port", port))
 	}
+
+	logger.Info("Notification service starting",
+			zap.String("port", port))
 
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("failed to serve: %v", err)
+			logger.Fatal("Failed to serve", zap.Error(err))
 		}
 	}()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go consumer.Start(ctx)
 
-	log.Printf("Notification service started on port %s", port)
-
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Println("Shutting down notification service...")
-
+	logger.Info("Shutting down notification service...")
 	cancel()
-
 	grpcServer.GracefulStop()
-
-	log.Println("Notification service stopped")
+	logger.Info("Notification service stopped")
 }

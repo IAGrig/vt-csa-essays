@@ -12,6 +12,7 @@ import (
 	"github.com/IAGrig/vt-csa-essays/backend/auth-service/internal/repository"
 	"github.com/IAGrig/vt-csa-essays/backend/auth-service/internal/service"
 	"github.com/IAGrig/vt-csa-essays/backend/shared/jwt"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -44,7 +45,8 @@ func TestMain(m *testing.M) {
 	}()
 
 	var repoErr error
-	testRepo, repoErr = repository.NewUserPgRepository()
+	logger := logging.NewEmptyLogger()
+	testRepo, repoErr = repository.NewUserPgRepository(logger)
 	if repoErr != nil {
 		fmt.Printf("Failed to create repository: %v\n", repoErr)
 		os.Exit(1)
@@ -55,7 +57,7 @@ func TestMain(m *testing.M) {
 	jwtGenerator := jwt.NewGenerator(accessSecret, refresSecret)
 	jwtParser := jwt.NewParser(accessSecret, refresSecret)
 
-	testService = service.New(testRepo, jwtGenerator, jwtParser)
+	testService = service.New(testRepo, jwtGenerator, jwtParser, logger)
 
 	code := m.Run()
 	os.Exit(code)

@@ -11,6 +11,7 @@ import (
 	"github.com/IAGrig/vt-csa-essays/backend/essay-service/internal/repository/mocks"
 	pb "github.com/IAGrig/vt-csa-essays/backend/proto/essay"
 	reviewPb "github.com/IAGrig/vt-csa-essays/backend/proto/review"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc"
@@ -186,7 +187,8 @@ func TestEssayService_Add(t *testing.T) {
 			mockReviewClient := new(MockReviewClient)
 			tt.setupMock(mockRepo)
 
-			service := New(mockRepo, mockReviewClient)
+			logger := logging.NewEmptyLogger()
+			service := New(mockRepo, mockReviewClient, logger)
 			result, err := service.Add(context.Background(), tt.input)
 
 			if tt.expectedError != nil {
@@ -266,7 +268,8 @@ func TestEssayService_GetAllEssays(t *testing.T) {
 				sendError: tt.sendError,
 			}
 
-			service := New(mockRepo, mockReviewClient)
+			logger := logging.NewEmptyLogger()
+			service := New(mockRepo, mockReviewClient, logger)
 			err := service.GetAllEssays(&pb.EmptyRequest{}, stream)
 
 			if tt.expectedError {
@@ -402,7 +405,8 @@ func TestEssayService_GetByAuthorName(t *testing.T) {
 			mockReviewStream := new(MockReviewStream)
 			tt.setupMock(mockRepo, mockReviewClient, mockReviewStream)
 
-			service := New(mockRepo, mockReviewClient)
+			logger := logging.NewEmptyLogger()
+			service := New(mockRepo, mockReviewClient, logger)
 			result, err := service.GetByAuthorName(context.Background(), tt.input)
 
 			if tt.expectedError != nil {
@@ -482,7 +486,8 @@ func TestEssayService_RemoveByAuthorName(t *testing.T) {
 			mockReviewClient := new(MockReviewClient)
 			tt.setupMock(mockRepo)
 
-			service := New(mockRepo, mockReviewClient)
+			logger := logging.NewEmptyLogger()
+			service := New(mockRepo, mockReviewClient, logger)
 			result, err := service.RemoveByAuthorName(context.Background(), tt.input)
 
 			if tt.expectedError != nil {
@@ -567,7 +572,8 @@ func TestEssayService_SearchByContent(t *testing.T) {
 				sendError: tt.sendError,
 			}
 
-			service := New(mockRepo, mockReviewClient)
+			logger := logging.NewEmptyLogger()
+			service := New(mockRepo, mockReviewClient, logger)
 			err := service.SearchByContent(tt.input, stream)
 
 			if tt.expectedError {

@@ -9,6 +9,7 @@ import (
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/models"
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/repository"
 	repoMocks "github.com/IAGrig/vt-csa-essays/backend/review-service/internal/repository/mocks"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/metadata"
@@ -108,7 +109,8 @@ func TestReviewService_Add(t *testing.T) {
 			mockProducer := new(kafkaMocks.MockProducer)
 			tt.setupMock(mockRepo, mockProducer)
 
-			service := NewForTest(mockRepo, mockProducer)
+			logger := logging.NewEmptyLogger()
+			service := NewForTest(mockRepo, mockProducer, logger)
 			result, err := service.Add(context.Background(), tt.input)
 
 			if tt.expectedError {
@@ -190,7 +192,8 @@ func TestReviewService_GetAllReviews(t *testing.T) {
 				sendError: tt.sendError,
 			}
 
-			service := New(mockRepo, mockProducer)
+			logger := logging.NewEmptyLogger()
+			service := New(mockRepo, mockProducer, logger)
 			err := service.GetAllReviews(&pb.EmptyRequest{}, stream)
 
 			if tt.expectedError {
@@ -282,7 +285,8 @@ func TestReviewService_GetByEssayId(t *testing.T) {
 				sendError: tt.sendError,
 			}
 
-			service := New(mockRepo, mockProducer)
+			logger := logging.NewEmptyLogger()
+			service := New(mockRepo, mockProducer, logger)
 			err := service.GetByEssayId(tt.input, stream)
 
 			if tt.expectedError {
@@ -359,7 +363,8 @@ func TestReviewService_RemoveById(t *testing.T) {
 			mockProducer := new(kafkaMocks.MockProducer)
 			tt.setupMock(mockRepo, mockProducer)
 
-			service := New(mockRepo, mockProducer)
+			logger := logging.NewEmptyLogger()
+			service := New(mockRepo, mockProducer, logger)
 			result, err := service.RemoveById(context.Background(), tt.input)
 
 			if tt.expectedError {

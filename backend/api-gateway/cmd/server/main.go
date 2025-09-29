@@ -1,19 +1,23 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 
 	"github.com/IAGrig/vt-csa-essays/backend/api-gateway/internal/clients"
 	"github.com/IAGrig/vt-csa-essays/backend/api-gateway/internal/handlers"
 	"github.com/IAGrig/vt-csa-essays/backend/api-gateway/internal/middleware"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	"github.com/IAGrig/vt-csa-essays/backend/shared/monitoring"
 )
 
 func main() {
+	logger := logging.New("api-gateway")
+	defer logger.Sync()
+
 	authServicePort := os.Getenv("AUTH_SERVICE_GRPC_PORT")
 	essayServicePort := os.Getenv("ESSAY_SERVICE_GRPC_PORT")
 	reviewServicePort := os.Getenv("REVIEW_SERVICE_GRPC_PORT")
@@ -24,42 +28,42 @@ func main() {
 
 	authClient, err := clients.NewAuthClient("auth-service:" + authServicePort)
 	if err != nil {
-		log.Fatalf("Failed to create auth client: %v", err)
+		logger.Fatal("Failed to create auth client", zap.Error(err))
 	}
 	defer authClient.Close()
 
 	essayClient, err := clients.NewEssayClient("essay-service:" + essayServicePort)
 	if err != nil {
-		log.Fatalf("Failed to create essay client: %v", err)
+		logger.Fatal("Failed to create essay client", zap.Error(err))
 	}
 	defer essayClient.Close()
 
 	reviewClient, err := clients.NewReviewClient("review-service:" + reviewServicePort)
 	if err != nil {
-		log.Fatalf("Failed to create review client: %v", err)
+		logger.Fatal("Failed to create review client", zap.Error(err))
 	}
 	defer reviewClient.Close()
 
 	notificationClient, err := clients.NewNotificationClient("notification-service:" + notificationServicePort)
 	if err != nil {
-		log.Fatalf("Failed to create notification client: %v", err)
+		logger.Fatal("Failed to create notification client", zap.Error(err))
 	}
 	defer notificationClient.Close()
 
-	authHandler := handlers.NewAuthHandler(authClient)
-	essayHandler := handlers.NewEssayHandler(essayClient)
-	reviewHandler := handlers.NewReviewHandler(reviewClient)
-	notificationHandler := handlers.NewNotificationHandler(notificationClient)
+	authHandler := handlers.NewAuthHandler(authClient, logger)
+	essayHandler := handlers.NewEssayHandler(essayClient, logger)
+	reviewHandler := handlers.NewReviewHandler(reviewClient, logger)
+	notificationHandler := handlers.NewNotificationHandler(notificationClient, logger)
 
 	router := gin.Default()
 
 	router.Use(monitoring.GinMiddleware())
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:	 []string{"http://localhost"},
-		AllowMethods:	 []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:	 []string{"Origin", "Content-Type", "Authorization"},
-		ExposeHeaders:	[]string{"Content-Length"},
+		AllowOrigins:     []string{"http://localhost"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
 
@@ -110,6 +114,6 @@ func main() {
 	}
 
 	if err := router.Run(":8080"); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+		logger.Fatal("Failed to start server", zap.Error(err))
 	}
 }

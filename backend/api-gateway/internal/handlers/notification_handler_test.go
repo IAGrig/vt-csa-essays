@@ -8,6 +8,7 @@ import (
 
 	"github.com/IAGrig/vt-csa-essays/backend/api-gateway/internal/clients/mocks"
 	"github.com/IAGrig/vt-csa-essays/backend/api-gateway/internal/handlers"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -92,7 +93,8 @@ func TestNotificationHandler_GetUserNotifications(t *testing.T) {
 			mockNotificationClient := new(mocks.MockNotificationClient)
 			tt.setupMock(mockNotificationClient)
 
-			handler := handlers.NewNotificationHandler(mockNotificationClient)
+			logger := logging.NewEmptyLogger()
+			handler := handlers.NewNotificationHandler(mockNotificationClient, logger)
 
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
@@ -195,7 +197,8 @@ func TestNotificationHandler_MarkAsRead(t *testing.T) {
 			mockNotificationClient := new(mocks.MockNotificationClient)
 			tt.setupMock(mockNotificationClient)
 
-			handler := handlers.NewNotificationHandler(mockNotificationClient)
+			logger := logging.NewEmptyLogger()
+			handler := handlers.NewNotificationHandler(mockNotificationClient, logger)
 
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
@@ -293,7 +296,8 @@ func TestNotificationHandler_MarkAllAsRead(t *testing.T) {
 			mockNotificationClient := new(mocks.MockNotificationClient)
 			tt.setupMock(mockNotificationClient)
 
-			handler := handlers.NewNotificationHandler(mockNotificationClient)
+			logger := logging.NewEmptyLogger()
+			handler := handlers.NewNotificationHandler(mockNotificationClient, logger)
 
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)

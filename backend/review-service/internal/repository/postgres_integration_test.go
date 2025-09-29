@@ -10,6 +10,7 @@ import (
 
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/models"
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/repository"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -38,8 +39,9 @@ func TestMain(m *testing.M) {
 		}
 	}()
 
+	logger := logging.NewEmptyLogger()
 	var repoErr error
-	testRepo, repoErr = repository.NewReviewPgRepository()
+	testRepo, repoErr = repository.NewReviewPgRepository(logger)
 	if repoErr != nil {
 		fmt.Printf("Failed to create repository: %v\n", repoErr)
 		os.Exit(1)

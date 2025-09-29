@@ -8,6 +8,7 @@ import (
 	"github.com/IAGrig/vt-csa-essays/backend/auth-service/internal/repository"
 	"github.com/IAGrig/vt-csa-essays/backend/auth-service/internal/repository/mocks"
 	pb "github.com/IAGrig/vt-csa-essays/backend/proto/user"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	jwtMocks "github.com/IAGrig/vt-csa-essays/backend/shared/jwt/mocks"
 	"github.com/stretchr/testify/assert"
 )
@@ -82,10 +83,11 @@ func TestAuthService_Register(t *testing.T) {
 			mockRepo := new(mocks.MockUserRepository)
 			mockGenerator := new(jwtMocks.MockTokenGenerator)
 			mockParser := new(jwtMocks.MockTokenParser)
+			logger := logging.NewEmptyLogger()
 
 			tt.setupMock(mockRepo)
 
-			service := New(mockRepo, mockGenerator, mockParser)
+			service := New(mockRepo, mockGenerator, mockParser, logger)
 			result, err := service.Register(context.Background(), tt.input)
 
 			if tt.expectedError != nil {
@@ -180,10 +182,11 @@ func TestAuthService_Auth(t *testing.T) {
 			mockRepo := new(mocks.MockUserRepository)
 			mockGenerator := new(jwtMocks.MockTokenGenerator)
 			mockParser := new(jwtMocks.MockTokenParser)
+			logger := logging.NewEmptyLogger()
 
 			tt.setupMock(mockRepo, mockGenerator)
 
-			service := New(mockRepo, mockGenerator, mockParser)
+			service := New(mockRepo, mockGenerator, mockParser, logger)
 			result, err := service.Auth(context.Background(), tt.input)
 
 			if tt.expectedError != nil {
@@ -257,10 +260,11 @@ func TestAuthService_GetByUsername(t *testing.T) {
 			mockRepo := new(mocks.MockUserRepository)
 			mockGenerator := new(jwtMocks.MockTokenGenerator)
 			mockParser := new(jwtMocks.MockTokenParser)
+			logger := logging.NewEmptyLogger()
 
 			tt.setupMock(mockRepo)
 
-			service := New(mockRepo, mockGenerator, mockParser)
+			service := New(mockRepo, mockGenerator, mockParser, logger)
 			result, err := service.GetByUsername(context.Background(), tt.input)
 
 			if tt.expectedError != nil {
@@ -357,10 +361,11 @@ func TestAuthService_RefreshToken(t *testing.T) {
 			mockRepo := new(mocks.MockUserRepository)
 			mockGenerator := new(jwtMocks.MockTokenGenerator)
 			mockParser := new(jwtMocks.MockTokenParser)
+			logger := logging.NewEmptyLogger()
 
 			tt.setupMock(mockRepo, mockParser, mockGenerator)
 
-			service := New(mockRepo, mockGenerator, mockParser)
+			service := New(mockRepo, mockGenerator, mockParser, logger)
 			result, err := service.RefreshToken(context.Background(), tt.input)
 
 			if tt.expectedError != nil {
