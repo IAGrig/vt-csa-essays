@@ -9,6 +9,7 @@ import (
 
 type TokenParser interface {
 	GetUsername(token, tokenType string) (string, error)
+	GetUserId(token, tokenType string) (int, error)
 }
 
 type jwtParser struct {
@@ -59,4 +60,45 @@ func (parser *jwtParser) GetUsername(tokenStr, tokenType string) (string, error)
 	}
 
 	return username, nil
+}
+
+func (parser *jwtParser) GetUserId(tokenStr, tokenType string) (int, error) {
+	var secret []byte
+	switch tokenType {
+	case "access":
+		secret = parser.accessSecret
+	case "refresh":
+		secret = parser.refreshSecret
+	}
+
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return secret, nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	if !token.Valid {
+		return 0, fmt.Errorf("token is invalid")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || claims["type"] != tokenType {
+		return 0, fmt.Errorf("wrong token type")
+	}
+
+	// Validate token expiration
+	exp, ok := claims["exp"].(float64)
+	if !ok || time.Now().Unix() > int64(exp) {
+		return 0, fmt.Errorf("token is expired")
+	}
+
+	userId, ok := claims["userId"].(float64)
+	if !ok || userId == 0 {
+		return 0, fmt.Errorf("token doesn't contain userId")
+	}
+
+	return int(userId), nil
 }

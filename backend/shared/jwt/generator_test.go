@@ -17,21 +17,25 @@ func TestJWTGenerator(t *testing.T) {
 	t.Run("GenerateAccessToken", func(t *testing.T) {
 		tests := []struct {
 			name     string
+			userId   int
 			username string
 			wantErr  bool
 		}{
 			{
 				name:     "success - generates valid access token",
+				userId:   1,
 				username: "testuser",
 				wantErr:  false,
 			},
 			{
 				name:     "fail - generates token for empty username",
+				userId:   1,
 				username: "",
 				wantErr:  true,
 			},
 			{
 				name:     "fail - generates token for whitespace username",
+				userId:   1,
 				username: "    ",
 				wantErr:  true,
 			},
@@ -39,7 +43,7 @@ func TestJWTGenerator(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				token, err := generator.GenerateAccessToken(tt.username)
+				token, err := generator.GenerateAccessToken(UserInfo{UserId: tt.userId, Username: tt.username})
 
 				if tt.wantErr {
 					assert.Error(t, err)
@@ -63,6 +67,7 @@ func TestJWTGenerator(t *testing.T) {
 					assert.NotEmpty(t, claims["jti"])
 					assert.NotZero(t, claims["iat"])
 					assert.NotZero(t, claims["exp"])
+					assert.EqualValues(t, float64(tt.userId), claims["userId"])
 
 					exp := time.Unix(int64(claims["exp"].(float64)), 0)
 					expectedExp := time.Now().Add(15 * time.Minute)
@@ -75,24 +80,27 @@ func TestJWTGenerator(t *testing.T) {
 	t.Run("GenerateRefreshToken", func(t *testing.T) {
 		tests := []struct {
 			name     string
+			userId   int
 			username string
 			wantErr  bool
 		}{
 			{
 				name:     "success - generates valid refresh token",
+				userId:   1,
 				username: "testuser",
 				wantErr:  false,
 			},
 			{
 				name:     "success - generates token for empty username",
+				userId:   1,
 				username: "",
-				wantErr:  false,
+				wantErr:  true,
 			},
 		}
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				token, err := generator.GenerateRefreshToken(tt.username)
+				token, err := generator.GenerateRefreshToken(UserInfo{UserId: tt.userId, Username: tt.username})
 
 				if tt.wantErr {
 					assert.Error(t, err)
@@ -116,6 +124,7 @@ func TestJWTGenerator(t *testing.T) {
 					assert.NotEmpty(t, claims["jti"])
 					assert.NotZero(t, claims["iat"])
 					assert.NotZero(t, claims["exp"])
+					assert.EqualValues(t, float64(tt.userId), claims["userId"])
 
 					exp := time.Unix(int64(claims["exp"].(float64)), 0)
 					expectedExp := time.Now().Add(7 * 24 * time.Hour)
@@ -126,10 +135,10 @@ func TestJWTGenerator(t *testing.T) {
 	})
 
 	t.Run("DifferentSigningMethods", func(t *testing.T) {
-		accessToken, err := generator.GenerateAccessToken("testuser")
+		accessToken, err := generator.GenerateAccessToken(UserInfo{UserId: 1, Username: "testuser"})
 		require.NoError(t, err)
 
-		refreshToken, err := generator.GenerateRefreshToken("testuser")
+		refreshToken, err := generator.GenerateRefreshToken(UserInfo{UserId: 1, Username: "testuser"})
 		require.NoError(t, err)
 
 		accessParsed, _ := jwt.Parse(accessToken, nil)
@@ -140,10 +149,10 @@ func TestJWTGenerator(t *testing.T) {
 	})
 
 	t.Run("TokenUniqueness", func(t *testing.T) {
-		token1, err := generator.GenerateAccessToken("testuser")
+		token1, err := generator.GenerateAccessToken(UserInfo{UserId: 1, Username: "testuser"})
 		require.NoError(t, err)
 
-		token2, err := generator.GenerateAccessToken("testuser")
+		token2, err := generator.GenerateAccessToken(UserInfo{UserId: 1, Username: "testuser"})
 		require.NoError(t, err)
 
 		assert.NotEqual(t, token1, token2, "Tokens should be different due to unique jti")

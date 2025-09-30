@@ -8,8 +8,9 @@ import (
 	"github.com/IAGrig/vt-csa-essays/backend/auth-service/internal/repository"
 	"github.com/IAGrig/vt-csa-essays/backend/auth-service/internal/repository/mocks"
 	pb "github.com/IAGrig/vt-csa-essays/backend/proto/user"
-	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/jwt"
 	jwtMocks "github.com/IAGrig/vt-csa-essays/backend/shared/jwt/mocks"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -128,9 +129,13 @@ func TestAuthService_Auth(t *testing.T) {
 					ID:       1,
 					Username: "testuser",
 				}
+				expectedUserInfo := jwt.UserInfo{
+					UserId:   1,
+					Username: "testuser",
+				}
 				mockRepo.On("Auth", expectedRequest).Return(expectedUser, nil)
-				mockGenerator.On("GenerateAccessToken", "testuser").Return("access_token_123", nil)
-				mockGenerator.On("GenerateRefreshToken", "testuser").Return("refresh_token_456", nil)
+				mockGenerator.On("GenerateAccessToken", expectedUserInfo).Return("access_token_123", nil)
+				mockGenerator.On("GenerateRefreshToken", expectedUserInfo).Return("refresh_token_456", nil)
 			},
 			expectedResult: &pb.AuthTokensResponse{
 				AccessToken:  "access_token_123",
@@ -169,8 +174,12 @@ func TestAuthService_Auth(t *testing.T) {
 					ID:       1,
 					Username: "testuser",
 				}
+				expectedUserInfo := jwt.UserInfo{
+					UserId:   1,
+					Username: "testuser",
+				}
 				mockRepo.On("Auth", expectedRequest).Return(expectedUser, nil)
-				mockGenerator.On("GenerateAccessToken", "testuser").Return("", assert.AnError)
+				mockGenerator.On("GenerateAccessToken", expectedUserInfo).Return("", assert.AnError)
 			},
 			expectedResult: nil,
 			expectedError:  assert.AnError,
@@ -302,9 +311,13 @@ func TestAuthService_RefreshToken(t *testing.T) {
 					ID:       1,
 					Username: "testuser",
 				}
+				expectedUserInfo := jwt.UserInfo{
+					UserId:   1,
+					Username: "testuser",
+				}
 				mockRepo.On("GetByUsername", "testuser").Return(expectedUser, nil)
 
-				mockGenerator.On("GenerateAccessToken", "testuser").Return("new_access_token", nil)
+				mockGenerator.On("GenerateAccessToken", expectedUserInfo).Return("new_access_token", nil)
 			},
 			expectedResult: &pb.AuthTokensResponse{
 				AccessToken:  "new_access_token",
@@ -347,9 +360,13 @@ func TestAuthService_RefreshToken(t *testing.T) {
 					ID:       1,
 					Username: "testuser",
 				}
+				expectedUserInfo := jwt.UserInfo{
+					UserId:   1,
+					Username: "testuser",
+				}
 				mockRepo.On("GetByUsername", "testuser").Return(expectedUser, nil)
 
-				mockGenerator.On("GenerateAccessToken", "testuser").Return("", assert.AnError)
+				mockGenerator.On("GenerateAccessToken", expectedUserInfo).Return("", assert.AnError)
 			},
 			expectedResult: nil,
 			expectedError:  assert.AnError,

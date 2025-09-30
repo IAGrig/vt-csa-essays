@@ -63,13 +63,14 @@ func (s *authService) Auth(ctx context.Context, in *pb.UserLoginRequest) (*pb.Au
 		return nil, err
 	}
 
-	accessToken, err := s.jwtGenerator.GenerateAccessToken(user.Username)
+	userInfo := jwt.UserInfo{UserId: user.ID, Username: user.Username}
+	accessToken, err := s.jwtGenerator.GenerateAccessToken(userInfo)
 	if err != nil {
 		logger.Error("Failed to generate access token", zap.Error(err))
 		return nil, err
 	}
 
-	refreshToken, err := s.jwtGenerator.GenerateRefreshToken(user.Username)
+	refreshToken, err := s.jwtGenerator.GenerateRefreshToken(userInfo)
 	if err != nil {
 		logger.Error("Failed to generate refresh token", zap.Error(err))
 		return nil, err
@@ -115,7 +116,8 @@ func (s *authService) RefreshToken(ctx context.Context, in *pb.RefreshTokenReque
 		return nil, err
 	}
 
-	newAccessToken, err := s.jwtGenerator.GenerateAccessToken(user.Username)
+	userInfo := jwt.UserInfo{UserId: user.ID, Username: user.Username}
+	newAccessToken, err := s.jwtGenerator.GenerateAccessToken(userInfo)
 	if err != nil {
 		logger.Error("Failed to generate new access token", zap.Error(err))
 		return nil, err
