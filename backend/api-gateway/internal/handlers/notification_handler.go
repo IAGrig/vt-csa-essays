@@ -15,26 +15,31 @@ import (
 
 type NotificationHandler struct {
 	notificationClient clients.NotificationClient
-	logger            *logging.Logger
+	logger             *logging.Logger
 }
 
 func NewNotificationHandler(notificationClient clients.NotificationClient, logger *logging.Logger) *NotificationHandler {
 	return &NotificationHandler{
 		notificationClient: notificationClient,
-		logger:            logger,
+		logger:             logger,
 	}
 }
 
 // GET /api/notifications
 func (h *NotificationHandler) GetUserNotifications(c *gin.Context) {
-	userID, exists := c.Get("user_id")
+	userID, exists := c.Get("userId")
 	if !exists {
 		h.logger.Warn("Authentication required for getting notifications")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		return
 	}
 
-	userIDInt := userID.(int64)
+	userIDInt, ok := userID.(int64)
+	if !ok {
+		h.logger.Warn("Wrong userId type in authorization header")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required: wrong userId type"})
+		return
+	}
 	logger := h.logger.With(
 		zap.String("operation", "get_user_notifications"),
 		zap.Int64("user_id", userIDInt),

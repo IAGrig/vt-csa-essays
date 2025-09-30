@@ -75,6 +75,15 @@ func TestNotificationHandler_GetUserNotifications(t *testing.T) {
 			},
 		},
 		{
+			name:           "wrong authentication - not numeric userId",
+			userID:         "some userId",
+			setupMock:      func(mockClient *mocks.MockNotificationClient) {},
+			expectedStatus: http.StatusUnauthorized,
+			expectedBody: map[string]interface{}{
+				"error": "authentication required: wrong userId type",
+			},
+		},
+		{
 			name:   "notification service error",
 			userID: int64(123),
 			setupMock: func(mockClient *mocks.MockNotificationClient) {
@@ -105,7 +114,7 @@ func TestNotificationHandler_GetUserNotifications(t *testing.T) {
 			c.Request = req
 
 			if tt.userID != nil {
-				c.Set("user_id", tt.userID)
+				c.Set("userId", tt.userID)
 			}
 
 			handler.GetUserNotifications(c)

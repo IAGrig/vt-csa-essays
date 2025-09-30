@@ -41,6 +41,13 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
 		}
 
+		userID, ok := claims["userId"].(float64)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid userId type"})
+			return
+		}
+		c.Set("userId", int64(userID))
+
 		c.Set("username", claims["sub"])
 		c.Next()
 	}
