@@ -1,0 +1,40 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'bachend/**'
+
+jobs:
+  unit-test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.25'
+        cache: true
+        cache-dependency-path: |
+          backend/api-gateway/go.sum
+          backend/auth-service/go.sum
+          backend/essay-service/go.sum
+          backend/review-service/go.sum
+          backend/notification-service/go.sum
+          backend/proto/go.sum
+          backend/shared/go.sum
+
+    - name: Run all tests
+      run: |
+        make unit-test
