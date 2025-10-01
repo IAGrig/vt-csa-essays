@@ -163,9 +163,9 @@ func setRefreshCookie(c *gin.Context, refreshToken string) {
 	c.SetCookie(
 		"refresh_token",
 		refreshToken,
-		7*24*60*60,        // MaxAge in seconds (7 days)
+		7*24*60*60,          // MaxAge in seconds (7 days)
 		"/api/auth/refresh", // Path
-		"",                 // Current domain
+		"",                  // Current domain
 		isSecure,
 		true, // HTTP only, JS can't read token
 	)

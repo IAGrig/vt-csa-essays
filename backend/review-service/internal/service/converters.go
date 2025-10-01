@@ -6,7 +6,6 @@ import (
 	pb "github.com/IAGrig/vt-csa-essays/backend/proto/review"
 )
 
-
 func toProtoReviewResponse(r models.Review) *pb.ReviewResponse {
 	var createdAt int64
 	if !r.CreatedAt.IsZero() {
@@ -14,11 +13,11 @@ func toProtoReviewResponse(r models.Review) *pb.ReviewResponse {
 	}
 
 	return &pb.ReviewResponse{
-		Id:		int32(r.ID),
+		Id:        int32(r.ID),
 		EssayId:   int32(r.EssayId),
-		Rank:	  int32(r.Rank),
+		Rank:      int32(r.Rank),
 		Content:   r.Content,
-		Author:	r.Author,
+		Author:    r.Author,
 		CreatedAt: createdAt,
 	}
 }

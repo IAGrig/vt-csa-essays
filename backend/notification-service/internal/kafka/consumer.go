@@ -15,11 +15,11 @@ import (
 )
 
 type NotificationEvent struct {
-	UserID    int64  `json:"user_id"`
-	Content   string `json:"content"`
-	EssayID   int64  `json:"essay_id,omitempty"`
-	ReviewID  int64  `json:"review_id,omitempty"`
-	Author    string `json:"author,omitempty"`
+	UserID   int64  `json:"user_id"`
+	Content  string `json:"content"`
+	EssayID  int64  `json:"essay_id,omitempty"`
+	ReviewID int64  `json:"review_id,omitempty"`
+	Author   string `json:"author,omitempty"`
 }
 
 type Consumer struct {

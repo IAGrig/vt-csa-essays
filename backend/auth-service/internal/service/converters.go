@@ -6,7 +6,6 @@ import (
 	pb "github.com/IAGrig/vt-csa-essays/backend/proto/user"
 )
 
-
 func toProtoUserResponse(u models.User) *pb.UserResponse {
 	return &pb.UserResponse{
 		Id:        int32(u.ID),

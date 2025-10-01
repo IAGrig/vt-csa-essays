@@ -59,7 +59,7 @@ func main() {
 	}
 
 	logger.Info("Notification service starting",
-			zap.String("port", port))
+		zap.String("port", port))
 
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {

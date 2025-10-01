@@ -50,7 +50,7 @@ func TestAuthHandler_Register(t *testing.T) {
 			},
 		},
 		{
-			name: "invalid json",
+			name:        "invalid json",
 			requestBody: `invalid json`,
 			setupMock: func(mockClient *mocks.MockAuthClient) {
 				// no calls expected
@@ -323,7 +323,7 @@ func TestAuthHandler_GetUser(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			expectedBody: map[string]interface{}{
-				"id": float64(123),
+				"id":       float64(123),
 				"username": "testuser",
 			},
 		},

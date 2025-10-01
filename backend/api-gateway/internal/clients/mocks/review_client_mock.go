@@ -3,8 +3,8 @@ package mocks
 import (
 	"context"
 
-	"github.com/stretchr/testify/mock"
 	pb "github.com/IAGrig/vt-csa-essays/backend/proto/review"
+	"github.com/stretchr/testify/mock"
 )
 
 type MockReviewClient struct {

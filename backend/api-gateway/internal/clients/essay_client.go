@@ -24,7 +24,6 @@ type essayClient struct {
 	service pb.EssayServiceClient
 }
 
-
 func NewEssayClient(addr string) (EssayClient, error) {
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -32,7 +31,7 @@ func NewEssayClient(addr string) (EssayClient, error) {
 	}
 
 	return &essayClient{
-		conn: conn,
+		conn:    conn,
 		service: pb.NewEssayServiceClient(conn),
 	}, nil
 }

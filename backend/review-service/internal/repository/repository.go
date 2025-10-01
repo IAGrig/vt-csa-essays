@@ -10,7 +10,6 @@ var (
 	ReviewNotFoundErr = errors.New("review not found")
 )
 
-
 type ReviewRepository interface {
 	Add(review models.ReviewRequest) (models.Review, error)
 	GetAllReviews() ([]models.Review, error)

@@ -3,6 +3,7 @@ GOCMD=go
 UNIT_TEST_FLAGS=-short
 
 ROOT_DIR=.
+BACKEND_DIR=backend
 PROTO_DIR=backend/proto
 SHARED_DIR=backend/shared
 API_GATEWAY_DIR=backend/api-gateway
@@ -56,3 +57,33 @@ mod-tidy-review:
 
 mod-tidy-notification:
 	cd $(NOTIFICATION_SERVICE_DIR) && go mod tidy
+
+
+.PHONY: format-code
+format-code:
+	gofmt -w $(BACKEND_DIR)
+
+
+.PHONY: vet-code vet-code-proto vet-code-shared vet-code-api-gateway vet-code-auth vet-code-essay vet-code-review vet-code-notification
+vet-code: vet-code-proto vet-code-shared vet-code-api-gateway vet-code-auth vet-code-essay vet-code-review vet-code-notification
+
+vet-code-proto:
+	cd $(PROTO_DIR) && go vet ./...
+
+vet-code-shared:
+	cd $(SHARED_DIR) && go vet ./...
+
+vet-code-api-gateway:
+	cd $(API_GATEWAY_DIR) && go vet ./...
+
+vet-code-auth:
+	cd $(AUTH_SERVICE_DIR) && go vet ./...
+
+vet-code-essay:
+	cd $(ESSAY_SERVICE_DIR) && go vet ./...
+
+vet-code-review:
+	cd $(REVIEW_SERVICE_DIR) && go vet ./...
+
+vet-code-notification:
+	cd $(NOTIFICATION_SERVICE_DIR) && go vet ./...

@@ -6,7 +6,6 @@ import (
 	pb "github.com/IAGrig/vt-csa-essays/backend/proto/essay"
 )
 
-
 func MarshalProtoEssayResponse(e *pb.EssayResponse) gin.H {
 	if e == nil {
 		return gin.H{}

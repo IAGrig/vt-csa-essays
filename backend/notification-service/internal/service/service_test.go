@@ -6,8 +6,8 @@ import (
 
 	"github.com/IAGrig/vt-csa-essays/backend/notification-service/internal/models"
 	repoMocks "github.com/IAGrig/vt-csa-essays/backend/notification-service/internal/repository/mocks"
-	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	pb "github.com/IAGrig/vt-csa-essays/backend/proto/notification"
+	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
 )
@@ -30,23 +30,23 @@ func (m *MinimalServerStream) Context() context.Context {
 	return m.ctx
 }
 
-func (m *MinimalServerStream) SetHeader(md metadata.MD) error { return nil }
+func (m *MinimalServerStream) SetHeader(md metadata.MD) error  { return nil }
 func (m *MinimalServerStream) SendHeader(md metadata.MD) error { return nil }
-func (m *MinimalServerStream) SetTrailer(md metadata.MD)      {}
-func (m *MinimalServerStream) SendMsg(interface{}) error      { return nil }
-func (m *MinimalServerStream) RecvMsg(interface{}) error      { return nil }
+func (m *MinimalServerStream) SetTrailer(md metadata.MD)       {}
+func (m *MinimalServerStream) SendMsg(interface{}) error       { return nil }
+func (m *MinimalServerStream) RecvMsg(interface{}) error       { return nil }
 
 func TestNotificationService_GetByUserID(t *testing.T) {
 	tests := []struct {
-		name           string
-		input          *pb.GetByUserIDRequest
-		setupMock      func(*repoMocks.MockNotificationRepository)
-		expectedCount  int
-		sendError      error
-		expectedError  bool
+		name          string
+		input         *pb.GetByUserIDRequest
+		setupMock     func(*repoMocks.MockNotificationRepository)
+		expectedCount int
+		sendError     error
+		expectedError bool
 	}{
 		{
-			name: "success - streams user notifications",
+			name:  "success - streams user notifications",
 			input: &pb.GetByUserIDRequest{UserId: 123},
 			setupMock: func(mockRepo *repoMocks.MockNotificationRepository) {
 				notifications := []models.Notification{
@@ -69,7 +69,7 @@ func TestNotificationService_GetByUserID(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "success - streams empty list when no notifications",
+			name:  "success - streams empty list when no notifications",
 			input: &pb.GetByUserIDRequest{UserId: 456},
 			setupMock: func(mockRepo *repoMocks.MockNotificationRepository) {
 				mockRepo.On("GetByUserID", int64(456)).Return([]models.Notification{}, nil)
@@ -78,7 +78,7 @@ func TestNotificationService_GetByUserID(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "error - repository returns error",
+			name:  "error - repository returns error",
 			input: &pb.GetByUserIDRequest{UserId: 123},
 			setupMock: func(mockRepo *repoMocks.MockNotificationRepository) {
 				mockRepo.On("GetByUserID", int64(123)).Return([]models.Notification{}, assert.AnError)
@@ -87,7 +87,7 @@ func TestNotificationService_GetByUserID(t *testing.T) {
 			expectedError: true,
 		},
 		{
-			name: "error - stream send fails",
+			name:  "error - stream send fails",
 			input: &pb.GetByUserIDRequest{UserId: 123},
 			setupMock: func(mockRepo *repoMocks.MockNotificationRepository) {
 				notifications := []models.Notification{

@@ -41,9 +41,9 @@ func TestEssayHandler_CreateEssay(t *testing.T) {
 					Content: "This is a test essay content",
 					Author:  "testuser",
 				}).Return(&pb.EssayResponse{
-					Id:       1,
-					Content:  "This is a test essay content",
-					Author:   "testuser",
+					Id:      1,
+					Content: "This is a test essay content",
+					Author:  "testuser",
 				}, nil)
 			},
 			expectedStatus: http.StatusCreated,
@@ -68,18 +68,18 @@ func TestEssayHandler_CreateEssay(t *testing.T) {
 			},
 		},
 		{
-			name: "invalid json",
+			name:        "invalid json",
 			requestBody: []byte("invalid json"),
-			username: "testuser",
+			username:    "testuser",
 			setupMock: func(mockClient *mocks.MockEssayClient) {
 				// no call expected
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name: "missing content",
+			name:        "missing content",
 			requestBody: []byte(`{}`),
-			username: "testuser",
+			username:    "testuser",
 			setupMock: func(mockClient *mocks.MockEssayClient) {
 				// no call expected
 			},
