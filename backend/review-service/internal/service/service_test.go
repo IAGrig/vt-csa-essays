@@ -16,7 +16,7 @@ import (
 )
 
 type MinimalServerStream struct {
-	ctx	      context.Context
+	ctx          context.Context
 	sentMessages []*pb.ReviewResponse
 	sendError    error
 }
@@ -33,39 +33,40 @@ func (m *MinimalServerStream) Context() context.Context {
 	return m.ctx
 }
 
-func (m *MinimalServerStream) SetHeader(md metadata.MD) error { return nil }
+func (m *MinimalServerStream) SetHeader(md metadata.MD) error  { return nil }
 func (m *MinimalServerStream) SendHeader(md metadata.MD) error { return nil }
-func (m *MinimalServerStream) SetTrailer(md metadata.MD)      {}
-func (m *MinimalServerStream) SendMsg(interface{}) error      { return nil }
-func (m *MinimalServerStream) RecvMsg(interface{}) error      { return nil }
+func (m *MinimalServerStream) SetTrailer(md metadata.MD)       {}
+func (m *MinimalServerStream) SendMsg(interface{}) error       { return nil }
+func (m *MinimalServerStream) RecvMsg(interface{}) error       { return nil }
 
 func TestReviewService_Add(t *testing.T) {
 	tests := []struct {
-		name		   string
-		input		  *pb.ReviewAddRequest
-		setupMock	  func(*repoMocks.MockReviewRepository, *kafkaMocks.MockProducer)
+		name           string
+		input          *pb.ReviewAddRequest
+		setupMock      func(*repoMocks.MockReviewRepository, *kafkaMocks.MockProducer)
 		expectedResult *pb.ReviewResponse
 		expectedError  bool
 	}{
 		{
 			name: "success - adds review successfully",
 			input: &pb.ReviewAddRequest{
-				EssayId: 1,
-				Rank:	1,
-				Content: "Excellent essay",
-				Author:  "reviewer1",
+				EssayId:       1,
+				EssayAuthorId: 1,
+				Rank:          1,
+				Content:       "Excellent essay",
+				Author:        "reviewer1",
 			},
 			setupMock: func(mockRepo *repoMocks.MockReviewRepository, mockProducer *kafkaMocks.MockProducer) {
 				expectedRequest := models.ReviewRequest{
 					EssayId: 1,
-					Rank:	1,
+					Rank:    1,
 					Content: "Excellent essay",
 					Author:  "reviewer1",
 				}
 				expectedReview := models.Review{
-					ID:	  1,
+					ID:      1,
 					EssayId: 1,
-					Rank:	1,
+					Rank:    1,
 					Content: "Excellent essay",
 					Author:  "reviewer1",
 				}
@@ -73,9 +74,9 @@ func TestReviewService_Add(t *testing.T) {
 				mockProducer.On("SendNotificationEvent", mock.Anything, mock.Anything).Return(nil)
 			},
 			expectedResult: &pb.ReviewResponse{
-				Id:	  1,
+				Id:      1,
 				EssayId: 1,
-				Rank:	1,
+				Rank:    1,
 				Content: "Excellent essay",
 				Author:  "reviewer1",
 			},
@@ -85,14 +86,14 @@ func TestReviewService_Add(t *testing.T) {
 			name: "error - repository returns error",
 			input: &pb.ReviewAddRequest{
 				EssayId: 1,
-				Rank:	1,
+				Rank:    1,
 				Content: "Excellent essay",
 				Author:  "reviewer1",
 			},
 			setupMock: func(mockRepo *repoMocks.MockReviewRepository, mockProducer *kafkaMocks.MockProducer) {
 				expectedRequest := models.ReviewRequest{
 					EssayId: 1,
-					Rank:	1,
+					Rank:    1,
 					Content: "Excellent essay",
 					Author:  "reviewer1",
 				}
@@ -133,11 +134,11 @@ func TestReviewService_Add(t *testing.T) {
 
 func TestReviewService_GetAllReviews(t *testing.T) {
 	tests := []struct {
-		name           string
-		setupMock	  func(*repoMocks.MockReviewRepository, *kafkaMocks.MockProducer)
-		expectedCount  int
-		sendError	  error
-		expectedError  bool
+		name          string
+		setupMock     func(*repoMocks.MockReviewRepository, *kafkaMocks.MockProducer)
+		expectedCount int
+		sendError     error
+		expectedError bool
 	}{
 		{
 			name: "success - streams all reviews",
@@ -175,7 +176,7 @@ func TestReviewService_GetAllReviews(t *testing.T) {
 				}
 				mockRepo.On("GetAllReviews").Return(reviews, nil)
 			},
-			sendError:	 assert.AnError,
+			sendError:     assert.AnError,
 			expectedCount: 0,
 			expectedError: true,
 		},
@@ -188,7 +189,7 @@ func TestReviewService_GetAllReviews(t *testing.T) {
 			tt.setupMock(mockRepo, mockProducer)
 
 			stream := &MinimalServerStream{
-				ctx:	   context.Background(),
+				ctx:       context.Background(),
 				sendError: tt.sendError,
 			}
 
@@ -221,12 +222,12 @@ func TestReviewService_GetAllReviews(t *testing.T) {
 
 func TestReviewService_GetByEssayId(t *testing.T) {
 	tests := []struct {
-		name		   string
-		input		  *pb.GetByEssayIdRequest
-		setupMock	  func(*repoMocks.MockReviewRepository, *kafkaMocks.MockProducer)
-		expectedCount  int
-		sendError	  error
-		expectedError  bool
+		name          string
+		input         *pb.GetByEssayIdRequest
+		setupMock     func(*repoMocks.MockReviewRepository, *kafkaMocks.MockProducer)
+		expectedCount int
+		sendError     error
+		expectedError bool
 	}{
 		{
 			name:  "success - streams reviews for essay",
@@ -268,7 +269,7 @@ func TestReviewService_GetByEssayId(t *testing.T) {
 				}
 				mockRepo.On("GetByEssayId", 1).Return(reviews, nil)
 			},
-			sendError:	 assert.AnError,
+			sendError:     assert.AnError,
 			expectedCount: 0,
 			expectedError: true,
 		},
@@ -281,7 +282,7 @@ func TestReviewService_GetByEssayId(t *testing.T) {
 			tt.setupMock(mockRepo, mockProducer)
 
 			stream := &MinimalServerStream{
-				ctx:	   context.Background(),
+				ctx:       context.Background(),
 				sendError: tt.sendError,
 			}
 
@@ -309,9 +310,9 @@ func TestReviewService_GetByEssayId(t *testing.T) {
 
 func TestReviewService_RemoveById(t *testing.T) {
 	tests := []struct {
-		name		   string
-		input		  *pb.RemoveByIdRequest
-		setupMock	  func(*repoMocks.MockReviewRepository, *kafkaMocks.MockProducer)
+		name           string
+		input          *pb.RemoveByIdRequest
+		setupMock      func(*repoMocks.MockReviewRepository, *kafkaMocks.MockProducer)
 		expectedResult *pb.ReviewResponse
 		expectedError  bool
 	}{
@@ -320,18 +321,18 @@ func TestReviewService_RemoveById(t *testing.T) {
 			input: &pb.RemoveByIdRequest{Id: 1},
 			setupMock: func(mockRepo *repoMocks.MockReviewRepository, mockProducer *kafkaMocks.MockProducer) {
 				review := models.Review{
-					ID:	  1,
+					ID:      1,
 					EssayId: 1,
-					Rank:	1,
+					Rank:    1,
 					Content: "Deleted review",
 					Author:  "reviewer1",
 				}
 				mockRepo.On("RemoveById", 1).Return(review, nil)
 			},
 			expectedResult: &pb.ReviewResponse{
-				Id:	  1,
+				Id:      1,
 				EssayId: 1,
-				Rank:	1,
+				Rank:    1,
 				Content: "Deleted review",
 				Author:  "reviewer1",
 			},
@@ -387,23 +388,23 @@ func TestReviewService_RemoveById(t *testing.T) {
 
 func TestToProtoReviewResponse(t *testing.T) {
 	tests := []struct {
-		name	 string
-		input	models.Review
+		name     string
+		input    models.Review
 		expected *pb.ReviewResponse
 	}{
 		{
 			name: "converts review to proto response",
 			input: models.Review{
-				ID:	  1,
+				ID:      1,
 				EssayId: 2,
-				Rank:	1,
+				Rank:    1,
 				Content: "Test content",
 				Author:  "test author",
 			},
 			expected: &pb.ReviewResponse{
-				Id:	  1,
+				Id:      1,
 				EssayId: 2,
-				Rank:	1,
+				Rank:    1,
 				Content: "Test content",
 				Author:  "test author",
 			},
@@ -411,16 +412,16 @@ func TestToProtoReviewResponse(t *testing.T) {
 		{
 			name: "handles zero values",
 			input: models.Review{
-				ID:	  0,
+				ID:      0,
 				EssayId: 0,
-				Rank:	0,
+				Rank:    0,
 				Content: "",
 				Author:  "",
 			},
 			expected: &pb.ReviewResponse{
-				Id:	  0,
+				Id:      0,
 				EssayId: 0,
-				Rank:	0,
+				Rank:    0,
 				Content: "",
 				Author:  "",
 			},

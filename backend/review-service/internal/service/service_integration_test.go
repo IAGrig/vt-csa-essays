@@ -188,10 +188,11 @@ func TestIntegrationReviewService_Add(t *testing.T) {
 	insertTestEssay(t, 1, "test-author")
 
 	req := &pb.ReviewAddRequest{
-		EssayId: 1,
-		Rank:    2,
-		Content: "Test review content",
-		Author:  "test-author",
+		EssayId:       1,
+		EssayAuthorId: 1,
+		Rank:          2,
+		Content:       "Test review content",
+		Author:        "test-author",
 	}
 
 	ctx := context.Background()

@@ -163,6 +163,7 @@ func TestIntegrationEssayRepository_Add(t *testing.T) {
 	assert.NotZero(t, essay.ID)
 	assert.Equal(t, essayReq.Content, essay.Content)
 	assert.Equal(t, essayReq.Author, essay.Author)
+	assert.NotZero(t, essay.AuthorId)
 	assert.False(t, essay.CreatedAt.IsZero())
 }
 
@@ -229,6 +230,7 @@ func TestIntegrationEssayRepository_GetByAuthorName(t *testing.T) {
 	assert.Equal(t, addedEssay.ID, essay.ID)
 	assert.Equal(t, addedEssay.Content, essay.Content)
 	assert.Equal(t, addedEssay.Author, essay.Author)
+	assert.NotZero(t, essay.AuthorId)
 }
 
 func TestIntegrationEssayRepository_GetByAuthorName_NotFound(t *testing.T) {
@@ -263,6 +265,7 @@ func TestIntegrationEssayRepository_RemoveByAuthorName(t *testing.T) {
 	assert.Equal(t, addedEssay.ID, removedEssay.ID)
 	assert.Equal(t, addedEssay.Content, removedEssay.Content)
 	assert.Equal(t, addedEssay.Author, removedEssay.Author)
+	assert.Equal(t, addedEssay.AuthorId, addedEssay.AuthorId)
 
 	_, err = testRepo.GetByAuthorName("test-author")
 	assert.ErrorIs(t, err, repository.EssayNotFoundErr)

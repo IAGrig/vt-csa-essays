@@ -24,9 +24,10 @@ const (
 type ReviewAddRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	EssayId       int32                  `protobuf:"varint,1,opt,name=essay_id,json=essayId,proto3" json:"essay_id,omitempty"`
-	Rank          int32                  `protobuf:"varint,2,opt,name=rank,proto3" json:"rank,omitempty"`
-	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
-	Author        string                 `protobuf:"bytes,4,opt,name=author,proto3" json:"author,omitempty"`
+	EssayAuthorId int32                  `protobuf:"varint,2,opt,name=essay_author_id,json=essayAuthorId,proto3" json:"essay_author_id,omitempty"`
+	Rank          int32                  `protobuf:"varint,3,opt,name=rank,proto3" json:"rank,omitempty"`
+	Content       string                 `protobuf:"bytes,4,opt,name=content,proto3" json:"content,omitempty"`
+	Author        string                 `protobuf:"bytes,5,opt,name=author,proto3" json:"author,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -64,6 +65,13 @@ func (*ReviewAddRequest) Descriptor() ([]byte, []int) {
 func (x *ReviewAddRequest) GetEssayId() int32 {
 	if x != nil {
 		return x.EssayId
+	}
+	return 0
+}
+
+func (x *ReviewAddRequest) GetEssayAuthorId() int32 {
+	if x != nil {
+		return x.EssayAuthorId
 	}
 	return 0
 }
@@ -301,12 +309,13 @@ var File_review_review_proto protoreflect.FileDescriptor
 
 const file_review_review_proto_rawDesc = "" +
 	"\n" +
-	"\x13review/review.proto\x12\x06review\"s\n" +
+	"\x13review/review.proto\x12\x06review\"\x9b\x01\n" +
 	"\x10ReviewAddRequest\x12\x19\n" +
-	"\bessay_id\x18\x01 \x01(\x05R\aessayId\x12\x12\n" +
-	"\x04rank\x18\x02 \x01(\x05R\x04rank\x12\x18\n" +
-	"\acontent\x18\x03 \x01(\tR\acontent\x12\x16\n" +
-	"\x06author\x18\x04 \x01(\tR\x06author\"\xa0\x01\n" +
+	"\bessay_id\x18\x01 \x01(\x05R\aessayId\x12&\n" +
+	"\x0fessay_author_id\x18\x02 \x01(\x05R\ressayAuthorId\x12\x12\n" +
+	"\x04rank\x18\x03 \x01(\x05R\x04rank\x12\x18\n" +
+	"\acontent\x18\x04 \x01(\tR\acontent\x12\x16\n" +
+	"\x06author\x18\x05 \x01(\tR\x06author\"\xa0\x01\n" +
 	"\x0eReviewResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x19\n" +
 	"\bessay_id\x18\x02 \x01(\x05R\aessayId\x12\x12\n" +

@@ -108,11 +108,11 @@ func (m *MinimalServerStream) Context() context.Context {
 	return m.ctx
 }
 
-func (m *MinimalServerStream) SetHeader(md metadata.MD) error { return nil }
+func (m *MinimalServerStream) SetHeader(md metadata.MD) error  { return nil }
 func (m *MinimalServerStream) SendHeader(md metadata.MD) error { return nil }
-func (m *MinimalServerStream) SetTrailer(md metadata.MD)      {}
-func (m *MinimalServerStream) SendMsg(interface{}) error      { return nil }
-func (m *MinimalServerStream) RecvMsg(interface{}) error      { return nil }
+func (m *MinimalServerStream) SetTrailer(md metadata.MD)       {}
+func (m *MinimalServerStream) SendMsg(interface{}) error       { return nil }
+func (m *MinimalServerStream) RecvMsg(interface{}) error       { return nil }
 
 func TestEssayService_Add(t *testing.T) {
 	tests := []struct {
@@ -209,11 +209,11 @@ func TestEssayService_Add(t *testing.T) {
 
 func TestEssayService_GetAllEssays(t *testing.T) {
 	tests := []struct {
-		name           string
-		setupMock      func(*mocks.MockEssayRepository)
-		expectedCount  int
-		sendError      error
-		expectedError  bool
+		name          string
+		setupMock     func(*mocks.MockEssayRepository)
+		expectedCount int
+		sendError     error
+		expectedError bool
 	}{
 		{
 			name: "success - streams all essays",
@@ -293,13 +293,14 @@ func TestEssayService_GetByAuthorName(t *testing.T) {
 		expectedError  error
 	}{
 		{
-			name: "success - returns essay with reviews",
+			name:  "success - returns essay with reviews",
 			input: &pb.GetByAuthorNameRequest{Authorname: "testuser"},
 			setupMock: func(mockRepo *mocks.MockEssayRepository, mockReviewClient *MockReviewClient, mockStream *MockReviewStream) {
 				expectedEssay := models.Essay{
-					ID:      1,
-					Content: "Test essay",
-					Author:  "testuser",
+					ID:       1,
+					Content:  "Test essay",
+					Author:   "testuser",
+					AuthorId: 1,
 				}
 				mockRepo.On("GetByAuthorName", "testuser").Return(expectedEssay, nil)
 
@@ -317,9 +318,10 @@ func TestEssayService_GetByAuthorName(t *testing.T) {
 				mockStream.On("Recv").Return(io.EOF).Once()
 			},
 			expectedResult: &pb.EssayWithReviewsResponse{
-				Id:      1,
-				Content: "Test essay",
-				Author:  "testuser",
+				Id:       1,
+				Content:  "Test essay",
+				Author:   "testuser",
+				AuthorId: 1,
 				Reviews: []*reviewPb.ReviewResponse{
 					{Id: 1, EssayId: 1, Rank: 5, Content: "Great essay", Author: "reviewer1"},
 					{Id: 2, EssayId: 1, Rank: 4, Content: "Good essay", Author: "reviewer2"},
@@ -328,7 +330,7 @@ func TestEssayService_GetByAuthorName(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name: "error - essay not found",
+			name:  "error - essay not found",
 			input: &pb.GetByAuthorNameRequest{Authorname: "nonexistent"},
 			setupMock: func(mockRepo *mocks.MockEssayRepository, mockReviewClient *MockReviewClient, mockStream *MockReviewStream) {
 				mockRepo.On("GetByAuthorName", "nonexistent").Return(models.Essay{}, repository.EssayNotFoundErr)
@@ -337,7 +339,7 @@ func TestEssayService_GetByAuthorName(t *testing.T) {
 			expectedError:  repository.EssayNotFoundErr,
 		},
 		{
-			name: "error - review client fails",
+			name:  "error - review client fails",
 			input: &pb.GetByAuthorNameRequest{Authorname: "testuser"},
 			setupMock: func(mockRepo *mocks.MockEssayRepository, mockReviewClient *MockReviewClient, mockStream *MockReviewStream) {
 				expectedEssay := models.Essay{
@@ -354,7 +356,7 @@ func TestEssayService_GetByAuthorName(t *testing.T) {
 			expectedError:  errors.New("failed to get reviews stream from review service: review service unavailable"),
 		},
 		{
-			name: "error - review stream fails",
+			name:  "error - review stream fails",
 			input: &pb.GetByAuthorNameRequest{Authorname: "testuser"},
 			setupMock: func(mockRepo *mocks.MockEssayRepository, mockReviewClient *MockReviewClient, mockStream *MockReviewStream) {
 				expectedEssay := models.Essay{
@@ -373,13 +375,14 @@ func TestEssayService_GetByAuthorName(t *testing.T) {
 			expectedError:  assert.AnError,
 		},
 		{
-			name: "success - essay with no reviews",
+			name:  "success - essay with no reviews",
 			input: &pb.GetByAuthorNameRequest{Authorname: "testuser"},
 			setupMock: func(mockRepo *mocks.MockEssayRepository, mockReviewClient *MockReviewClient, mockStream *MockReviewStream) {
 				expectedEssay := models.Essay{
-					ID:      1,
-					Content: "Test essay",
-					Author:  "testuser",
+					ID:       1,
+					Content:  "Test essay",
+					Author:   "testuser",
+					AuthorId: 1,
 				}
 				mockRepo.On("GetByAuthorName", "testuser").Return(expectedEssay, nil)
 
@@ -389,10 +392,11 @@ func TestEssayService_GetByAuthorName(t *testing.T) {
 				mockStream.On("Recv").Return(io.EOF).Once()
 			},
 			expectedResult: &pb.EssayWithReviewsResponse{
-				Id:      1,
-				Content: "Test essay",
-				Author:  "testuser",
-				Reviews: []*reviewPb.ReviewResponse{},
+				Id:       1,
+				Content:  "Test essay",
+				Author:   "testuser",
+				AuthorId: 1,
+				Reviews:  []*reviewPb.ReviewResponse{},
 			},
 			expectedError: nil,
 		},
@@ -418,6 +422,7 @@ func TestEssayService_GetByAuthorName(t *testing.T) {
 				assert.Equal(t, tt.expectedResult.Id, result.Id)
 				assert.Equal(t, tt.expectedResult.Content, result.Content)
 				assert.Equal(t, tt.expectedResult.Author, result.Author)
+				assert.Equal(t, tt.expectedResult.AuthorId, result.AuthorId)
 				assert.Len(t, result.Reviews, len(tt.expectedResult.Reviews))
 
 				for i, expectedReview := range tt.expectedResult.Reviews {
@@ -443,7 +448,7 @@ func TestEssayService_RemoveByAuthorName(t *testing.T) {
 		expectedError  error
 	}{
 		{
-			name: "success - removes essay by author name",
+			name:  "success - removes essay by author name",
 			input: &pb.RemoveByAuthorNameRequest{Authorname: "testuser"},
 			setupMock: func(mockRepo *mocks.MockEssayRepository) {
 				expectedEssay := models.Essay{
@@ -461,7 +466,7 @@ func TestEssayService_RemoveByAuthorName(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name: "error - essay not found",
+			name:  "error - essay not found",
 			input: &pb.RemoveByAuthorNameRequest{Authorname: "nonexistent"},
 			setupMock: func(mockRepo *mocks.MockEssayRepository) {
 				mockRepo.On("RemoveByAuthorName", "nonexistent").Return(models.Essay{}, repository.EssayNotFoundErr)
@@ -470,7 +475,7 @@ func TestEssayService_RemoveByAuthorName(t *testing.T) {
 			expectedError:  repository.EssayNotFoundErr,
 		},
 		{
-			name: "error - repository error",
+			name:  "error - repository error",
 			input: &pb.RemoveByAuthorNameRequest{Authorname: "testuser"},
 			setupMock: func(mockRepo *mocks.MockEssayRepository) {
 				mockRepo.On("RemoveByAuthorName", "testuser").Return(models.Essay{}, assert.AnError)
@@ -508,15 +513,15 @@ func TestEssayService_RemoveByAuthorName(t *testing.T) {
 
 func TestEssayService_SearchByContent(t *testing.T) {
 	tests := []struct {
-		name           string
-		input          *pb.SearchByContentRequest
-		setupMock      func(*mocks.MockEssayRepository)
-		expectedCount  int
-		sendError      error
-		expectedError  bool
+		name          string
+		input         *pb.SearchByContentRequest
+		setupMock     func(*mocks.MockEssayRepository)
+		expectedCount int
+		sendError     error
+		expectedError bool
 	}{
 		{
-			name: "success - streams search results",
+			name:  "success - streams search results",
 			input: &pb.SearchByContentRequest{Content: "search term"},
 			setupMock: func(mockRepo *mocks.MockEssayRepository) {
 				essays := []models.Essay{
@@ -529,7 +534,7 @@ func TestEssayService_SearchByContent(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "success - no search results",
+			name:  "success - no search results",
 			input: &pb.SearchByContentRequest{Content: "nonexistent"},
 			setupMock: func(mockRepo *mocks.MockEssayRepository) {
 				mockRepo.On("SearchByContent", "nonexistent").Return([]models.Essay{}, nil)
@@ -538,7 +543,7 @@ func TestEssayService_SearchByContent(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "error - repository returns error",
+			name:  "error - repository returns error",
 			input: &pb.SearchByContentRequest{Content: "search term"},
 			setupMock: func(mockRepo *mocks.MockEssayRepository) {
 				mockRepo.On("SearchByContent", "search term").Return([]models.Essay{}, assert.AnError)
@@ -547,7 +552,7 @@ func TestEssayService_SearchByContent(t *testing.T) {
 			expectedError: true,
 		},
 		{
-			name: "error - stream send fails",
+			name:  "error - stream send fails",
 			input: &pb.SearchByContentRequest{Content: "search term"},
 			setupMock: func(mockRepo *mocks.MockEssayRepository) {
 				essays := []models.Essay{

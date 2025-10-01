@@ -13,9 +13,10 @@ service ReviewService {
 
 message ReviewAddRequest {
 	int32 essay_id = 1;
-	int32 rank = 2;
-	string content = 3;
-	string author = 4;
+	int32 essay_author_id = 2;
+	int32 rank = 3;
+	string content = 4;
+	string author = 5;
 }
 
 message ReviewResponse {

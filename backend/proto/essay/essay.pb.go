@@ -227,8 +227,9 @@ type EssayWithReviewsResponse struct {
 	Id            int32                    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Content       string                   `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
 	Author        string                   `protobuf:"bytes,3,opt,name=author,proto3" json:"author,omitempty"`
-	CreatedAt     int64                    `protobuf:"varint,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	Reviews       []*review.ReviewResponse `protobuf:"bytes,5,rep,name=reviews,proto3" json:"reviews,omitempty"`
+	AuthorId      int32                    `protobuf:"varint,4,opt,name=author_id,json=authorId,proto3" json:"author_id,omitempty"`
+	CreatedAt     int64                    `protobuf:"varint,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Reviews       []*review.ReviewResponse `protobuf:"bytes,6,rep,name=reviews,proto3" json:"reviews,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -282,6 +283,13 @@ func (x *EssayWithReviewsResponse) GetAuthor() string {
 		return x.Author
 	}
 	return ""
+}
+
+func (x *EssayWithReviewsResponse) GetAuthorId() int32 {
+	if x != nil {
+		return x.AuthorId
+	}
+	return 0
 }
 
 func (x *EssayWithReviewsResponse) GetCreatedAt() int64 {
@@ -404,14 +412,15 @@ const file_essay_essay_proto_rawDesc = "" +
 	"\x16GetByAuthorNameRequest\x12\x1e\n" +
 	"\n" +
 	"authorname\x18\x01 \x01(\tR\n" +
-	"authorname\"\xad\x01\n" +
+	"authorname\"\xca\x01\n" +
 	"\x18EssayWithReviewsResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x16\n" +
-	"\x06author\x18\x03 \x01(\tR\x06author\x12\x1d\n" +
+	"\x06author\x18\x03 \x01(\tR\x06author\x12\x1b\n" +
+	"\tauthor_id\x18\x04 \x01(\x05R\bauthorId\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x04 \x01(\x03R\tcreatedAt\x120\n" +
-	"\areviews\x18\x05 \x03(\v2\x16.review.ReviewResponseR\areviews\";\n" +
+	"created_at\x18\x05 \x01(\x03R\tcreatedAt\x120\n" +
+	"\areviews\x18\x06 \x03(\v2\x16.review.ReviewResponseR\areviews\";\n" +
 	"\x19RemoveByAuthorNameRequest\x12\x1e\n" +
 	"\n" +
 	"authorname\x18\x01 \x01(\tR\n" +

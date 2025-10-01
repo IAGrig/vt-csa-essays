@@ -76,34 +76,32 @@ func (s *reviewService) Add(ctx context.Context, in *pb.ReviewAddRequest) (*pb.R
 		zap.Int("review_id", review.ID),
 		zap.Duration("processing_time", time.Since(start)))
 
-	if s.producer != nil {
-		kafkaStart := time.Now()
-		event := kafka.NotificationEvent{
-			Type:     "new_review",
-			UserID:   0, // placeholder
-			Content:  fmt.Sprintf("Your essay has been reviewed by %s", in.Author),
-			EssayID:  int64(in.EssayId),
-			ReviewID: int64(review.ID),
-			Author:   in.Author,
-		}
+	kafkaStart := time.Now()
+	event := kafka.NotificationEvent{
+		Type:     "new_review",
+		UserID:   int64(in.EssayAuthorId),
+		Content:  fmt.Sprintf("Your essay has been reviewed by %s", in.Author),
+		EssayID:  int64(in.EssayId),
+		ReviewID: int64(review.ID),
+		Author:   in.Author,
+	}
 
-		if s.testMode {
-			// synchronous call for tests
-			if err := s.producer.SendNotificationEvent(ctx, event); err != nil {
-				monitoring.KafkaMessagesProcessed.WithLabelValues("notifications", "producer_error").Inc()
-				logger.Warn("Failed to send notification event", zap.Error(err))
-			}
-		} else {
-			// asynchronous call for production
-			go func() {
-				if err := s.producer.SendNotificationEvent(context.Background(), event); err != nil {
-					monitoring.KafkaMessagesProcessed.WithLabelValues("notifications", "producer_error").Inc()
-					logger.Warn("Failed to send notification event asynchronously", zap.Error(err))
-				}
-				kafkaDuration := time.Since(kafkaStart).Seconds()
-				monitoring.DbQueryDuration.WithLabelValues("kafka_produce", "notifications").Observe(kafkaDuration)
-			}()
+	if s.testMode {
+		// synchronous call for tests
+		if err := s.producer.SendNotificationEvent(ctx, event); err != nil {
+			monitoring.KafkaMessagesProcessed.WithLabelValues("notifications", "producer_error").Inc()
+			logger.Warn("Failed to send notification event", zap.Error(err))
 		}
+	} else {
+		// asynchronous call for production
+		go func() {
+			if err := s.producer.SendNotificationEvent(context.Background(), event); err != nil {
+				monitoring.KafkaMessagesProcessed.WithLabelValues("notifications", "producer_error").Inc()
+				logger.Warn("Failed to send notification event asynchronously", zap.Error(err))
+			}
+			kafkaDuration := time.Since(kafkaStart).Seconds()
+			monitoring.DbQueryDuration.WithLabelValues("kafka_produce", "notifications").Observe(kafkaDuration)
+		}()
 	}
 
 	return toProtoReviewResponse(review), nil

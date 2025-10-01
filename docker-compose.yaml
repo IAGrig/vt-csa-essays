@@ -102,6 +102,8 @@ services:
     depends_on:
       migrations:
         condition: service_completed_successfully
+      kafka:
+        condition: service_healthy
     networks:
       - app-network
 
@@ -142,7 +144,9 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
     healthcheck:
-      test: ["CMD", "kafka-topics", "--bootstrap-server", "kafka:9092", "--list"]
+      test:
+      - "CMD-SHELL"
+      - "kafka-topics --bootstrap-server kafka:9092 --list | grep -q 'notifications' || kafka-topics --bootstrap-server kafka:9092 --create --topic notifications --partitions 1 --replication-factor 1"
       interval: 10s
       timeout: 10s
       retries: 5

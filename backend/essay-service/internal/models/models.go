@@ -11,6 +11,7 @@ type Essay struct {
 	ID        int
 	Content   string
 	Author    string
+	AuthorId  int
 	CreatedAt time.Time
 }
 
@@ -24,10 +25,10 @@ type EssayResponse struct {
 
 // Detailed get response
 type EssayWithReviewsResponse struct {
-	ID        int                     `json:"id"`
-	Content   string                  `json:"content"`
-	Author    string                  `json:"author"`
-	CreatedAt time.Time               `json:"created_at"`
+	ID        int                       `json:"id"`
+	Content   string                    `json:"content"`
+	Author    string                    `json:"author"`
+	CreatedAt time.Time                 `json:"created_at"`
 	Reviews   []reviewPb.ReviewResponse `json:"reviews"`
 }
 

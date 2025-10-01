@@ -46,10 +46,12 @@ func (repository *EssayPgRepository) Add(request models.EssayRequest) (models.Es
 	err = repository.db.QueryRow(context.Background(),
 		`INSERT INTO essays (content, author)
 		VALUES ($1, $2)
-		RETURNING essay_id, content, author, created_at;`,
+		RETURNING essay_id, content, author,
+				(SELECT user_id FROM users WHERE username = $2) AS author_id,
+				created_at;`,
 		request.Content,
 		request.Author,
-	).Scan(&e.ID, &e.Content, &e.Author, &e.CreatedAt)
+	).Scan(&e.ID, &e.Content, &e.Author, &e.AuthorId, &e.CreatedAt)
 
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -71,8 +73,9 @@ func (repository *EssayPgRepository) GetAllEssays() ([]models.Essay, error) {
 	logger.Debug("Getting all essays")
 
 	rows, err := repository.db.Query(context.Background(),
-		`SELECT essay_id, content, author, created_at
-		FROM essays
+		`SELECT e.essay_id, e.content, e.author, u.user_id AS author_id, e.created_at
+		FROM essays e
+		JOIN users u ON e.author = u.username
 		ORDER BY created_at DESC;`,
 	)
 	if err != nil {
@@ -88,6 +91,7 @@ func (repository *EssayPgRepository) GetAllEssays() ([]models.Essay, error) {
 			&e.ID,
 			&e.Content,
 			&e.Author,
+			&e.AuthorId,
 			&e.CreatedAt,
 		)
 		essays = append(essays, e)
@@ -107,11 +111,12 @@ func (repository *EssayPgRepository) GetByAuthorName(username string) (models.Es
 
 	var e models.Essay
 	err := repository.db.QueryRow(context.Background(),
-		`SELECT essay_id, content, author, created_at
-		FROM essays
+		`SELECT e.essay_id, e.content, e.author, u.user_id AS author_id, e.created_at
+		FROM essays e
+		JOIN users u ON e.author = u.username
 		WHERE author = $1;`,
 		username,
-	).Scan(&e.ID, &e.Content, &e.Author, &e.CreatedAt)
+	).Scan(&e.ID, &e.Content, &e.Author, &e.AuthorId, &e.CreatedAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -145,9 +150,11 @@ func (repository *EssayPgRepository) RemoveByAuthorName(username string) (models
 	err = tx.QueryRow(context.Background(),
 		`DELETE FROM essays
 		WHERE author = $1
-		RETURNING essay_id, content, author, created_at;`,
+		RETURNING essay_id, content, author,
+				(SELECT user_id FROM users WHERE username = $1) AS author_id,
+				created_at;`,
 		username,
-	).Scan(&e.ID, &e.Content, &e.Author, &e.CreatedAt)
+	).Scan(&e.ID, &e.Content, &e.Author, &e.AuthorId, &e.CreatedAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -176,8 +183,9 @@ func (repository *EssayPgRepository) SearchByContent(content string) ([]models.E
 	logger.Debug("Searching essays by content")
 
 	rows, err := repository.db.Query(context.Background(),
-		`SELECT essay_id, content, author, created_at, similarity(lower(content), lower($1)) as siml
-		FROM essays
+		`SELECT e.essay_id, e.content, e.author, u.user_id AS author_id, e.created_at, similarity(lower(content), lower($1)) as siml
+		FROM essays e
+		JOIN users u ON e.author = u.username
 		ORDER BY siml DESC
 		LIMIT 20;`,
 		content)
@@ -194,6 +202,7 @@ func (repository *EssayPgRepository) SearchByContent(content string) ([]models.E
 			&e.ID,
 			&e.Content,
 			&e.Author,
+			&e.AuthorId,
 			&e.CreatedAt,
 			nil,
 		)

@@ -30,9 +30,10 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 	logger := h.logger.With(zap.String("operation", "create_review"))
 
 	var request struct {
-		EssayId int32  `json:"essay_id" binding:"required"`
-		Rank    int32  `json:"rank" binding:"required"`
-		Content string `json:"content" binding:"required"`
+		EssayId       int32  `json:"essay_id" binding:"required"`
+		EssayAuthorId int32  `json:"essay_author_id" binding:"required"`
+		Rank          int32  `json:"rank" binding:"required"`
+		Content       string `json:"content" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&request); err != nil {
 		logger.Warn("Invalid create review request",
@@ -58,10 +59,11 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 	resp, err := h.reviewClient.CreateReview(
 		c.Request.Context(),
 		&pb.ReviewAddRequest{
-			EssayId: request.EssayId,
-			Rank:    request.Rank,
-			Content: request.Content,
-			Author:  usernameStr,
+			EssayId:       request.EssayId,
+			EssayAuthorId: request.EssayAuthorId,
+			Rank:          request.Rank,
+			Content:       request.Content,
+			Author:        usernameStr,
 		},
 	)
 	if err != nil {

@@ -33,16 +33,18 @@ func TestReviewHandler_CreateReview(t *testing.T) {
 			name: "successful review creation",
 			requestBody: []byte(`{
 				"essay_id": 123,
+				"essay_author_id": 1,
 				"rank": 1,
 				"content": "Great essay!"
 			}`),
 			username: "reviewer1",
 			setupMock: func(mockClient *mocks.MockReviewClient) {
 				mockClient.On("CreateReview", mock.Anything, &pb.ReviewAddRequest{
-					EssayId: 123,
-					Rank:    1,
-					Content: "Great essay!",
-					Author:  "reviewer1",
+					EssayId:       123,
+					EssayAuthorId: 1,
+					Rank:          1,
+					Content:       "Great essay!",
+					Author:        "reviewer1",
 				}).Return(&pb.ReviewResponse{
 					Id:      1,
 					EssayId: 123,
@@ -64,6 +66,7 @@ func TestReviewHandler_CreateReview(t *testing.T) {
 			name: "missing authentication",
 			requestBody: []byte(`{
 				"essay_id": 123,
+				"essay_author_id": 1,
 				"rank": 1,
 				"content": "Great essay!"
 			}`),
@@ -101,6 +104,7 @@ func TestReviewHandler_CreateReview(t *testing.T) {
 			name: "review service error",
 			requestBody: []byte(`{
 				"essay_id": 123,
+				"essay_author_id": 1,
 				"rank": 1,
 				"content": "Great essay!"
 			}`),

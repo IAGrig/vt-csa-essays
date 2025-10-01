@@ -21,6 +21,7 @@ func httpGet(t *testing.T, url string, headers map[string]string) (httpResp, err
 	t.Helper()
 
 	t.Logf("GET %s", url)
+	t.Logf("Headers: %s", headers)
 	req, _ := http.NewRequest("GET", url, nil)
 	for k, v := range headers {
 		req.Header.Set(k, v)
@@ -39,6 +40,7 @@ func httpPost(t *testing.T, url string, data string, headers map[string]string) 
 	t.Helper()
 
 	t.Logf("POST %s %s", url, data)
+	t.Logf("Headers: %s", headers)
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer([]byte(data)))
 	req.Header.Set("Content-Type", "application/json")
 	for k, v := range headers {
@@ -162,6 +164,21 @@ func TestE2EHappyPath(t *testing.T) {
 	checkError(t, "Register user1", err)
 	checkStatus(t, "Register user1", resp, http.StatusCreated)
 
+	var user1Id int
+	if err == nil && resp.status == http.StatusCreated {
+		var register1Resp map[string]interface{}
+		err := json.Unmarshal(resp.body, &register1Resp)
+		if err != nil {
+			checkError(t, "Parse register1 response", err)
+		}
+		idFloat, ok := register1Resp["id"].(float64)
+		if !ok {
+			t.Error("Error: non-numeric type of user ID")
+		} else {
+			user1Id = int(idFloat)
+		}
+	}
+
 	resp, err = httpPost(t, apiURL+"/api/auth/register", `{"username":"e2e_user2","password":"pw"}`, nil)
 	checkError(t, "Register user2", err)
 	checkStatus(t, "Register user2", resp, http.StatusCreated)
@@ -236,7 +253,7 @@ func TestE2EHappyPath(t *testing.T) {
 	// user2 posts review
 	if token2 != "" && essayID != "" {
 		resp, err = httpPost(t, apiURL+"/api/reviews",
-			fmt.Sprintf(`{"essay_id":%s,"rank":1,"content":"Nice!"}`, essayID), headers2)
+			fmt.Sprintf(`{"essay_id":%s,"essay_author_id":%d,"rank":1,"content":"Nice!"}`, essayID, user1Id), headers2)
 		checkError(t, "Create review", err)
 		checkStatus(t, "Create review", resp, http.StatusCreated)
 	}
@@ -259,8 +276,8 @@ func TestE2EHappyPath(t *testing.T) {
 	}
 
 	// wait for notifications (kafka)
-	t.Log("waiting 1s for notifications to propagate")
-	time.Sleep(1 * time.Second)
+	t.Log("waiting 10s for notifications to propagate")
+	time.Sleep(10 * time.Second)
 
 	if token1 != "" {
 		resp, err = httpGet(t, apiURL+"/api/notifications", headers1)

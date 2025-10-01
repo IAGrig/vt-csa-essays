@@ -7,7 +7,6 @@ import (
 	reviewPb "github.com/IAGrig/vt-csa-essays/backend/proto/review"
 )
 
-
 func toProtoEssayResponse(e models.Essay) *pb.EssayResponse {
 	return &pb.EssayResponse{
 		Id:        int32(e.ID),
@@ -19,10 +18,11 @@ func toProtoEssayResponse(e models.Essay) *pb.EssayResponse {
 
 func toProtoEssayWithReviewsResponse(e models.Essay, reviews []*reviewPb.ReviewResponse) *pb.EssayWithReviewsResponse {
 	return &pb.EssayWithReviewsResponse{
-		Id: int32(e.ID),
-		Content: e.Content,
-		Author: e.Author,
+		Id:        int32(e.ID),
+		Content:   e.Content,
+		Author:    e.Author,
+		AuthorId:  int32(e.AuthorId),
 		CreatedAt: e.CreatedAt.Unix(),
-		Reviews: reviews,
+		Reviews:   reviews,
 	}
 }
