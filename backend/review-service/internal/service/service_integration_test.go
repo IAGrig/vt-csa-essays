@@ -8,11 +8,13 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/kafka"
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/models"
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/repository"
 	"github.com/IAGrig/vt-csa-essays/backend/review-service/internal/service"
 	"github.com/IAGrig/vt-csa-essays/backend/shared/logging"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -24,11 +26,13 @@ import (
 	"github.com/pressly/goose/v3"
 
 	pb "github.com/IAGrig/vt-csa-essays/backend/proto/review"
+	kafkaMocks "github.com/IAGrig/vt-csa-essays/backend/review-service/internal/kafka/mocks"
 )
 
 var (
-	testService pb.ReviewServiceServer
-	testRepo    repository.ReviewRepository
+	testService  pb.ReviewServiceServer
+	testRepo     repository.ReviewRepository
+	mockProducer kafkaMocks.MockProducer
 )
 
 type mockStream struct {
@@ -78,7 +82,9 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	testService = service.New(testRepo, nil, logger)
+	mockProducer = kafkaMocks.MockProducer{}
+
+	testService = service.New(testRepo, &mockProducer, logger)
 
 	code := m.Run()
 	os.Exit(code)
@@ -194,6 +200,17 @@ func TestIntegrationReviewService_Add(t *testing.T) {
 		Content:       "Test review content",
 		Author:        "test-author",
 	}
+
+	expectedEvent := kafka.NotificationEvent{
+		Type:     "new_review",
+		UserID:   int64(req.EssayAuthorId),
+		Content:  fmt.Sprintf("Your essay has been reviewed by %s", req.Author),
+		EssayID:  int64(req.EssayId),
+		ReviewID: int64(1),
+		Author:   req.Author,
+	}
+
+	mockProducer.On("SendNotificationEvent", mock.Anything, expectedEvent).Return(nil)
 
 	ctx := context.Background()
 	resp, err := testService.Add(ctx, req)

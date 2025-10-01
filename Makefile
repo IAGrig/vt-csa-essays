@@ -1,6 +1,8 @@
 GOCMD=go
 
 UNIT_TEST_FLAGS=-short
+INTEGRATION_TEST_FLAGS=-run TestIntegration
+E2E_TEST_FLAGS=-v e2e_test.go
 
 ROOT_DIR=.
 BACKEND_DIR=backend
@@ -11,6 +13,10 @@ AUTH_SERVICE_DIR=backend/auth-service
 ESSAY_SERVICE_DIR=backend/essay-service
 REVIEW_SERVICE_DIR=backend/review-service
 NOTIFICATION_SERVICE_DIR=backend/notification-service
+E2E_TEST_DIR=backend/e2e
+
+.PHONY: test-all
+test-all: unit-test integration-test e2e-test
 
 .PHONY: unit-test unit-test-shared unit-test-api-gateway unit-test-auth unit-test-essay unit-test-review unit-test-notification
 unit-test: unit-test-shared unit-test-api-gateway unit-test-auth unit-test-essay unit-test-review unit-test-notification
@@ -32,6 +38,32 @@ unit-test-review:
 
 unit-test-notification:
 	cd $(NOTIFICATION_SERVICE_DIR) && go test ./... $(UNIT_TEST_FLAGS)
+
+
+.PHONY: integration-test integration-test-shared integration-test-api-gateway integration-test-auth integration-test-essay integration-test-review integration-test-notification
+integration-test: integration-test-shared integration-test-api-gateway integration-test-auth integration-test-essay integration-test-review integration-test-notification
+
+integration-test-shared:
+	cd $(SHARED_DIR) && go test ./... $(INTEGRATION_TEST_FLAGS)
+
+integration-test-api-gateway:
+	cd $(API_GATEWAY_DIR) && go test ./... $(INTEGRATION_TEST_FLAGS)
+
+integration-test-auth:
+	cd $(AUTH_SERVICE_DIR) && go test ./... $(INTEGRATION_TEST_FLAGS)
+
+integration-test-essay:
+	cd $(ESSAY_SERVICE_DIR) && go test ./... $(INTEGRATION_TEST_FLAGS)
+
+integration-test-review:
+	cd $(REVIEW_SERVICE_DIR) && go test ./... $(INTEGRATION_TEST_FLAGS)
+
+integration-test-notification:
+	cd $(NOTIFICATION_SERVICE_DIR) && go test ./... $(INTEGRATION_TEST_FLAGS)
+
+.PHONY: e2e-test
+e2e-test:
+	cd $(E2E_TEST_DIR) && go test $(E2E_TEST_FLAGS)
 
 
 .PHONY: mod-tidy mod-tidy-proto mod-tidy-shared mod-tidy-api-gateway mod-tidy-auth mod-tidy-essay mod-tidy-review mod-tidy-notification

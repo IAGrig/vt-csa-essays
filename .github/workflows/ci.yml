@@ -10,7 +10,7 @@ on:
     branches:
       - master
     paths:
-      - 'bachend/**'
+      - 'backend/**'
 
 jobs:
   unit-test:
@@ -35,6 +35,71 @@ jobs:
           backend/proto/go.sum
           backend/shared/go.sum
 
-    - name: Run all tests
+    - name: Run all unit tests
       run: |
         make unit-test
+
+  integration-test:
+    name: Run Integration Tests
+    runs-on: ubuntu-latest
+    needs: [unit-test]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.25'
+        cache: true
+        cache-dependency-path: |
+          backend/api-gateway/go.sum
+          backend/auth-service/go.sum
+          backend/essay-service/go.sum
+          backend/review-service/go.sum
+          backend/notification-service/go.sum
+          backend/proto/go.sum
+          backend/shared/go.sum
+
+    - name: Run all integration tests
+      run: |
+        make integration-test
+
+  e2e-test:
+    name: Run E2E Tests
+    runs-on: ubuntu-latest
+    needs: [unit-test, integration-test]
+
+    env:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB_NAME: test_db
+      POSTGRES_SSL_MODE: disable
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      JWT_ACCESS_SECRET: test_jwt_secret_for_ci_environment_only_very_long_secret_here
+      JWT_REFRESH_SECRET: test_refresh_secret_for_ci_environment_only_very_long_secret_here
+      JWT_COOKIE_IS_SECURE: false
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.25'
+        cache: true
+        cache-dependency-path: |
+          backend/api-gateway/go.sum
+          backend/auth-service/go.sum
+          backend/essay-service/go.sum
+          backend/review-service/go.sum
+          backend/notification-service/go.sum
+          backend/proto/go.sum
+          backend/shared/go.sum
+
+    - name: Run all E2E tests
+      run: |
+        make e2e-test

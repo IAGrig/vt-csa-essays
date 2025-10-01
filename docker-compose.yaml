@@ -44,7 +44,14 @@ services:
       REVIEW_SERVICE_GRPC_PORT: 50053
       NOTIFICATIONS_SERVICE_GRPC_PORT: 50054
       MONITORING_PORT: 9090
-    env_file: .env # JWT secrets
+      JWT_COOKIE_IS_SECURE: ${JWT_COOKIE_IS_SECURE}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB_NAME: ${POSTGRES_DB_NAME}
+      POSTGRES_SSL_MODE: ${POSTGRES_SSL_MODE}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
     depends_on:
       auth-service:
         condition: service_started
@@ -66,7 +73,14 @@ services:
     environment:
       AUTH_SERVICE_GRPC_PORT: 50051
       MONITORING_PORT: 9090
-    env_file: .env # JWT and postgres secrets
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB_NAME: ${POSTGRES_DB_NAME}
+      POSTGRES_SSL_MODE: ${POSTGRES_SSL_MODE}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
     depends_on:
       migrations:
         condition: service_completed_successfully
@@ -81,7 +95,12 @@ services:
       ESSAY_SERVICE_GRPC_PORT: 50052
       REVIEW_SERVICE_GRPC_PORT: 50053
       MONITORING_PORT: 9090
-    env_file: .env # postgres secrets
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB_NAME: ${POSTGRES_DB_NAME}
+      POSTGRES_SSL_MODE: ${POSTGRES_SSL_MODE}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
     depends_on:
       migrations:
         condition: service_completed_successfully
@@ -98,7 +117,12 @@ services:
       REVIEW_SERVICE_GRPC_PORT: 50053
       KAFKA_BROKERS: kafka:9092
       MONITORING_PORT: 9090
-    env_file: .env # postgres secrets
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB_NAME: ${POSTGRES_DB_NAME}
+      POSTGRES_SSL_MODE: ${POSTGRES_SSL_MODE}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
     depends_on:
       migrations:
         condition: service_completed_successfully
@@ -115,7 +139,12 @@ services:
       NOTIFICATIONS_SERVICE_GRPC_PORT: 50054
       KAFKA_BROKERS: kafka:9092
       MONITORING_PORT: 9090
-    env_file: .env # postgres secrets
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB_NAME: ${POSTGRES_DB_NAME}
+      POSTGRES_SSL_MODE: ${POSTGRES_SSL_MODE}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
     depends_on:
       migrations:
         condition: service_completed_successfully
